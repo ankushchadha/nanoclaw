@@ -15,6 +15,9 @@ import {
   CONTAINER_INSTALL_LABEL,
   DATA_DIR,
   GROUPS_DIR,
+  LITELLM_MASTER_KEY,
+  LITELLM_URL,
+  NANOCLAW_DOCKER_NETWORK,
   ONECLI_API_KEY,
   ONECLI_URL,
   TIMEZONE,
@@ -459,6 +462,22 @@ async function buildContainerArgs(
     throw new Error('OneCLI gateway not applied — refusing to spawn container without credentials');
   }
   log.info('OneCLI gateway applied', { containerName });
+
+  // Route agent API calls through LiteLLM instead of Anthropic directly.
+  // These args come after applyContainerConfig so they override OneCLI's
+  // ANTHROPIC_API_KEY=placeholder via Docker's last-write-wins behaviour.
+  if (NANOCLAW_DOCKER_NETWORK) {
+    args.push('--network', NANOCLAW_DOCKER_NETWORK);
+  }
+  if (LITELLM_URL) {
+    args.push('-e', `ANTHROPIC_BASE_URL=${LITELLM_URL}`);
+    args.push('-e', `ANTHROPIC_API_KEY=${LITELLM_MASTER_KEY}`);
+    // Prevent HTTP_PROXY (set by OneCLI) from intercepting the agent→LiteLLM
+    // call — the proxy runs on the host and cannot resolve the Docker-internal
+    // "litellm" hostname.
+    args.push('-e', 'NO_PROXY=litellm');
+    args.push('-e', 'no_proxy=litellm');
+  }
 
   // Host gateway
   args.push(...hostGatewayArgs());
