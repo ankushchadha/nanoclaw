@@ -1,5 +1,13 @@
 # LiteLLM Integration — Findings
 
+> **REMOVED 2026-06-12.** The integration was ripped out: the `/v1/messages`
+> pass-through gap below was still unfixed as of LiteLLM 1.87.2 (#24004 and
+> #24320 open; #20507 closed stale), so the fallback this was introduced for
+> never worked. Wiring removed from `src/config.ts`, `src/container-runner.ts`,
+> and `.env`; the compose stack at `~/projects/docker-compose.yml` was brought
+> down (file kept for reference). Agents call Anthropic directly through the
+> OneCLI gateway again. Kept as a record of what was tried and why it failed.
+
 **Date:** May 11, 2026
 **LiteLLM version at time of finding:** 1.83.10 (latest stable: 1.83.14-stable.patch.3, latest pre-release: 1.84.0-rc.1)
 
