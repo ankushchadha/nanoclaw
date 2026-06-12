@@ -14,6 +14,7 @@ import {
   CONTAINER_IMAGE_BASE,
   CONTAINER_INSTALL_LABEL,
   DATA_DIR,
+  EGRESS_OPEN_GROUPS,
   GROUPS_DIR,
   OAUTH_VIA_GATEWAY,
   ONECLI_API_KEY,
@@ -448,17 +449,26 @@ async function buildContainerArgs(
   // by applyContainerConfig above; Docker last-write-wins) so the x-api-key
   // path can't win the SDK's credential precedence.
   if (OAUTH_VIA_GATEWAY && !nativeCredentialsEnabled()) {
-    args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-placeholder-replaced-by-onecli-gateway-000000000000000000000000');
+    args.push(
+      '-e',
+      'CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-placeholder-replaced-by-onecli-gateway-000000000000000000000000',
+    );
     args.push('-e', 'ANTHROPIC_API_KEY=');
   }
 
   // Egress lockdown when enabled — throws if it can't be established, aborting
   // the spawn rather than running with open egress. Otherwise the host gateway.
-  if (ensureEgressNetwork()) {
+  // Local customization: groups labeled in NANOCLAW_EGRESS_OPEN_GROUPS (.env,
+  // comma-separated folders) are exempted and get direct internet.
+  const egressOpen = EGRESS_OPEN_GROUPS.has(agentGroup.folder);
+  if (!egressOpen && ensureEgressNetwork()) {
     args.push(...egressNetworkArgs());
     log.info('Egress lockdown active', { containerName, network: EGRESS_NETWORK });
   } else {
     args.push(...hostGatewayArgs());
+    if (egressOpen) {
+      log.info('Egress lockdown bypassed — group labeled open', { containerName, group: agentGroup.folder });
+    }
   }
 
   // User mapping

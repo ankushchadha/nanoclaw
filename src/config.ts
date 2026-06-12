@@ -13,6 +13,7 @@ const envConfig = readEnvFile([
   'ONECLI_API_KEY',
   'TZ',
   'NANOCLAW_OAUTH_VIA_GATEWAY',
+  'NANOCLAW_EGRESS_OPEN_GROUPS',
 ]);
 
 export const ASSISTANT_NAME = process.env.ASSISTANT_NAME || envConfig.ASSISTANT_NAME || 'Andy';
@@ -44,6 +45,14 @@ export const ONECLI_URL = process.env.ONECLI_URL || envConfig.ONECLI_URL;
 export const ONECLI_API_KEY = process.env.ONECLI_API_KEY || envConfig.ONECLI_API_KEY;
 export const OAUTH_VIA_GATEWAY =
   (process.env.NANOCLAW_OAUTH_VIA_GATEWAY || envConfig.NANOCLAW_OAUTH_VIA_GATEWAY) === 'true';
+// Agent-group folders exempt from egress lockdown (direct internet via host
+// gateway). Host-side label only — not visible or modifiable from containers.
+export const EGRESS_OPEN_GROUPS = new Set(
+  (process.env.NANOCLAW_EGRESS_OPEN_GROUPS || envConfig.NANOCLAW_EGRESS_OPEN_GROUPS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
 export const MAX_MESSAGES_PER_PROMPT = Math.max(1, parseInt(process.env.MAX_MESSAGES_PER_PROMPT || '10', 10) || 10);
 export const IDLE_TIMEOUT = parseInt(process.env.IDLE_TIMEOUT || '1800000', 10); // 30min default — how long to keep container alive after last result
 export const MAX_CONCURRENT_CONTAINERS = Math.max(1, parseInt(process.env.MAX_CONCURRENT_CONTAINERS || '5', 10) || 5);
