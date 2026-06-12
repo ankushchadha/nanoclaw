@@ -15,6 +15,7 @@ import {
   CONTAINER_INSTALL_LABEL,
   DATA_DIR,
   GROUPS_DIR,
+  OAUTH_VIA_GATEWAY,
   ONECLI_API_KEY,
   ONECLI_URL,
   TIMEZONE,
@@ -437,6 +438,18 @@ async function buildContainerArgs(
     log.info('OneCLI gateway applied', { containerName });
   } else {
     log.info('OneCLI gateway skipped — native credentials enabled', { containerName });
+  }
+
+  // Vault-held Claude OAuth token (local customization): the ClaudePro-OAuth
+  // generic secret injects `Authorization: Bearer <real token>` at the gateway.
+  // Claude Code only sends Bearer auth (+ the oauth beta header) when it sees
+  // an OAuth-shaped token, so thread a worthless placeholder — the real token
+  // never enters the container. Blank ANTHROPIC_API_KEY (set to a placeholder
+  // by applyContainerConfig above; Docker last-write-wins) so the x-api-key
+  // path can't win the SDK's credential precedence.
+  if (OAUTH_VIA_GATEWAY && !nativeCredentialsEnabled()) {
+    args.push('-e', 'CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-placeholder-replaced-by-onecli-gateway-000000000000000000000000');
+    args.push('-e', 'ANTHROPIC_API_KEY=');
   }
 
   // Egress lockdown when enabled — throws if it can't be established, aborting
