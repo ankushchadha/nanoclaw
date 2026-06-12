@@ -185,7 +185,6 @@ async function main(): Promise<void> {
     log.info('Dashboard disabled (no DASHBOARD_SECRET)');
   }
 
-
   log.info('NanoClaw running');
 }
 
