@@ -4,6 +4,10 @@ import path from 'path';
 
 import { query as sdkQuery, type HookCallback, type PreCompactHookInput } from '@anthropic-ai/claude-agent-sdk';
 
+/** Agentic-loop cap (circuit-breaker). Generous enough for real multi-doc
+ *  research, low enough to stop a runaway well before the 30-min ceiling. */
+const MAX_TURNS = Math.max(1, parseInt(process.env.NANOCLAW_MAX_TURNS || '150', 10) || 150);
+
 import { clearContainerToolInFlight, setContainerToolInFlight } from '../db/connection.js';
 import { registerProvider } from './provider-registry.js';
 import type { AgentProvider, AgentQuery, McpServerConfig, ProviderEvent, ProviderOptions, QueryInput } from './types.js';
@@ -415,6 +419,12 @@ export class ClaudeProvider implements AgentProvider {
         effort: this.effort as any,
         permissionMode: 'bypassPermissions',
         allowDangerouslySkipPermissions: true,
+        // Runaway/thrash circuit-breaker: cap the agentic loop so a stuck agent
+        // (e.g. browser-automation churn on a hostile portal) ends its turn
+        // instead of looping to the 30-min absolute-ceiling kill. Ending the
+        // turn naturally also acks the inbound message → avoids the
+        // kill→re-spawn→re-thrash loop. Override via NANOCLAW_MAX_TURNS.
+        maxTurns: MAX_TURNS,
         settingSources: ['project', 'user', 'local'],
         mcpServers: this.mcpServers,
         hooks: {
