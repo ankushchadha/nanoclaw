@@ -53,6 +53,29 @@ import type { AgentGroup, Session } from './types.js';
 
 const onecli = new OneCLI({ url: ONECLI_URL, apiKey: ONECLI_API_KEY });
 
+/** Worthless placeholder; the real token is injected by the OneCLI gateway. */
+export const OAUTH_PLACEHOLDER_TOKEN = 'sk-ant-oat01-placeholder-replaced-by-onecli-gateway-000000000000000000000000';
+
+/** Should this agent-group folder bypass egress lockdown (direct internet)? */
+export function shouldBypassEgress(folder: string, openGroups: Set<string> = EGRESS_OPEN_GROUPS): boolean {
+  return openGroups.has(folder);
+}
+
+/**
+ * Docker `-e` args for the vault-held Claude OAuth token path: a placeholder
+ * CLAUDE_CODE_OAUTH_TOKEN (so Claude Code sends Bearer auth) + a blanked
+ * ANTHROPIC_API_KEY (so the x-api-key path can't win precedence). The OneCLI
+ * gateway swaps the placeholder for the real token at egress. Empty unless
+ * OAUTH_VIA_GATEWAY is on and native credentials are NOT in use.
+ */
+export function oauthGatewayEnvArgs(
+  oauthViaGateway: boolean = OAUTH_VIA_GATEWAY,
+  nativeEnabled: boolean = nativeCredentialsEnabled(),
+): string[] {
+  if (!oauthViaGateway || nativeEnabled) return [];
+  return ['-e', `CLAUDE_CODE_OAUTH_TOKEN=${OAUTH_PLACEHOLDER_TOKEN}`, '-e', 'ANTHROPIC_API_KEY='];
+}
+
 /** Active containers tracked by session ID. */
 const activeContainers = new Map<string, { process: ChildProcess; containerName: string }>();
 
@@ -448,19 +471,27 @@ async function buildContainerArgs(
   // never enters the container. Blank ANTHROPIC_API_KEY (set to a placeholder
   // by applyContainerConfig above; Docker last-write-wins) so the x-api-key
   // path can't win the SDK's credential precedence.
-  if (OAUTH_VIA_GATEWAY && !nativeCredentialsEnabled()) {
-    args.push(
-      '-e',
-      'CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-placeholder-replaced-by-onecli-gateway-000000000000000000000000',
+  const oauthArgs = oauthGatewayEnvArgs();
+  if (oauthArgs.length) {
+    args.push(...oauthArgs);
+    // #3 robustness: OAuth-via-gateway depends on the agent's OneCLI vault
+    // having an Anthropic OAuth secret assigned. If it doesn't (e.g. a freshly
+    // auto-created agent in selective mode), the placeholder Bearer 401s
+    // silently. Surface the dependency so the gotcha is diagnosable in logs.
+    log.info(
+      'OAuth-via-gateway: injecting placeholder token — requires an Anthropic OAuth secret assigned to this OneCLI agent',
+      {
+        containerName,
+        agent: agentIdentifier,
+      },
     );
-    args.push('-e', 'ANTHROPIC_API_KEY=');
   }
 
   // Egress lockdown when enabled — throws if it can't be established, aborting
   // the spawn rather than running with open egress. Otherwise the host gateway.
   // Local customization: groups labeled in NANOCLAW_EGRESS_OPEN_GROUPS (.env,
   // comma-separated folders) are exempted and get direct internet.
-  const egressOpen = EGRESS_OPEN_GROUPS.has(agentGroup.folder);
+  const egressOpen = shouldBypassEgress(agentGroup.folder);
   if (!egressOpen && ensureEgressNetwork()) {
     args.push(...egressNetworkArgs());
     log.info('Egress lockdown active', { containerName, network: EGRESS_NETWORK });
