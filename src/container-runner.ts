@@ -444,6 +444,16 @@ async function buildContainerArgs(
   //   what fixes a real failure mode, not blanket resource bumps.)
   args.push('--shm-size=1g', '--init');
 
+  // Runtime hardening — contain the blast radius of a compromised/prompt-injected
+  // agent (these agents run with bypassed tool permissions and browse untrusted
+  // sites, so the container boundary is the real control). Defense-in-depth; none
+  // of these prevent injection, they cap what a compromised agent can do.
+  // --cap-drop=ALL — strip Linux capabilities (NET_RAW etc.); verified Chromium
+  //   still launches (agent-browser runs it no-sandbox). --security-opt
+  //   no-new-privileges — block setuid escalation. --pids-limit — no fork-bomb.
+  //   --memory — one container can't starve the host VM.
+  args.push('--cap-drop=ALL', '--security-opt', 'no-new-privileges', '--pids-limit=512', '--memory=4g');
+
   // Environment — only vars read by code we don't own.
   // Everything NanoClaw-specific is in container.json (read by runner at startup).
   args.push('-e', `TZ=${TIMEZONE}`);
