@@ -32,9 +32,17 @@ export interface RunnerPolicy {
    * dead-ends (anti-bot / token-gated portals) and out-of-lane sources.
    */
   blockedDomains: string[];
+  /**
+   * Cap on `pdftoppm` FULL-PAGE render DPI (null = no cap). A full-page render
+   * above this is HARD-blocked at PreToolUse; high-DPI is allowed only with an
+   * explicit crop region (poppler `-x -y -W -H`). Soft "render at 150" prompts
+   * kept leaking to 300-DPI full pages (the dominant latency+token sink); this
+   * converts the cap from advisory to enforced.
+   */
+  maxFullPageRenderDpi: number | null;
 }
 
-const DEFAULT_POLICY: RunnerPolicy = { stateless: false, blockedDomains: [] };
+const DEFAULT_POLICY: RunnerPolicy = { stateless: false, blockedDomains: [], maxFullPageRenderDpi: null };
 const DEFAULT_POLICY_PATH = '/workspace/agent/runner-policy.json';
 
 /** Read + validate the policy file. Missing/malformed → safe defaults. */
@@ -52,10 +60,31 @@ export function loadRunnerPolicy(policyPath: string = DEFAULT_POLICY_PATH): Runn
       blockedDomains: Array.isArray(parsed.blockedDomains)
         ? parsed.blockedDomains.filter((d): d is string => typeof d === 'string' && d.trim().length > 0).map((d) => d.trim().toLowerCase())
         : [],
+      maxFullPageRenderDpi:
+        typeof parsed.maxFullPageRenderDpi === 'number' && parsed.maxFullPageRenderDpi > 0
+          ? parsed.maxFullPageRenderDpi
+          : null,
     };
   } catch {
     return { ...DEFAULT_POLICY };
   }
+}
+
+/**
+ * Pure matcher: is this a `pdftoppm` FULL-PAGE render above the DPI cap?
+ * Returns the offending DPI if so (→ block), else null. A render WITH a crop
+ * region (poppler `-x -y -W -H`) is always allowed regardless of DPI — cropping
+ * is the sanctioned way to read fine detail. Only bare full-page high-DPI is denied.
+ */
+export function pdftoppmFullPageDpiViolation(command: string, capDpi: number): number | null {
+  if (!/\bpdftoppm\b/.test(command)) return null;
+  const m = command.match(/(?:^|\s)-r\s+(\d+)/);
+  if (!m) return null;
+  const dpi = parseInt(m[1], 10);
+  if (!Number.isFinite(dpi) || dpi <= capDpi) return null;
+  // A genuine crop sets all four poppler crop flags; allow those at any DPI.
+  const hasCrop = /(?:^|\s)-x\s+\d/.test(command) && /(?:^|\s)-W\s+\d/.test(command);
+  return hasCrop ? null : dpi;
 }
 
 /**

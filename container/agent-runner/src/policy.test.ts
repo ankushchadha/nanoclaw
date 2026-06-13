@@ -3,7 +3,28 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { findBlockedDomain, loadRunnerPolicy } from './policy.js';
+import { findBlockedDomain, loadRunnerPolicy, pdftoppmFullPageDpiViolation } from './policy.js';
+
+describe('pdftoppmFullPageDpiViolation', () => {
+  const cap = 150;
+  test('full-page render above cap → violation (returns dpi)', () => {
+    expect(pdftoppmFullPageDpiViolation('pdftoppm -png -r 300 -f 6 -l 6 in.pdf out', cap)).toBe(300);
+    expect(pdftoppmFullPageDpiViolation('pdftoppm -png -r 250 -f 11 -l 11 in.pdf out', cap)).toBe(250);
+  });
+  test('at or below cap → allowed (null)', () => {
+    expect(pdftoppmFullPageDpiViolation('pdftoppm -png -r 150 -f 2 -l 4 in.pdf out', cap)).toBeNull();
+    expect(pdftoppmFullPageDpiViolation('pdftoppm -png -r 100 -f 1 -l 1 in.pdf out', cap)).toBeNull();
+  });
+  test('high DPI WITH a crop region → allowed (cropping is the sanctioned path)', () => {
+    expect(pdftoppmFullPageDpiViolation('pdftoppm -r 300 -x 100 -y 200 -W 400 -H 400 -f 6 -l 6 in.pdf out', cap)).toBeNull();
+  });
+  test('non-pdftoppm command → null', () => {
+    expect(pdftoppmFullPageDpiViolation('curl https://x.com -r 300', cap)).toBeNull();
+  });
+  test('no -r flag → null', () => {
+    expect(pdftoppmFullPageDpiViolation('pdftoppm -png -f 6 -l 6 in.pdf out', cap)).toBeNull();
+  });
+});
 
 describe('findBlockedDomain', () => {
   const blocked = ['parcelquest.com', 'ccgis.maps.arcgis.com', 'zillow.com'];

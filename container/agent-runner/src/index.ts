@@ -45,6 +45,7 @@ async function main(): Promise<void> {
   const policy = loadRunnerPolicy();
   if (policy.stateless) log('Runner policy: stateless (no session resume)');
   if (policy.blockedDomains.length > 0) log(`Runner policy: ${policy.blockedDomains.length} blocked domain(s)`);
+  if (policy.maxFullPageRenderDpi) log(`Runner policy: full-page render cap ${policy.maxFullPageRenderDpi} DPI`);
   const providerName = config.provider.toLowerCase() as ProviderName;
 
   log(`Starting v2 agent-runner (provider: ${providerName})`);
@@ -98,6 +99,7 @@ async function main(): Promise<void> {
     model: config.model,
     effort: config.effort,
     blockedDomains: policy.blockedDomains,
+    maxFullPageRenderDpi: policy.maxFullPageRenderDpi,
   });
 
   await runPollLoop({

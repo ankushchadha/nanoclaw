@@ -9,7 +9,7 @@ import { query as sdkQuery, type HookCallback, type PreCompactHookInput } from '
 const MAX_TURNS = Math.max(1, parseInt(process.env.NANOCLAW_MAX_TURNS || '150', 10) || 150);
 
 import { clearContainerToolInFlight, setContainerToolInFlight } from '../db/connection.js';
-import { findBlockedDomain } from '../policy.js';
+import { findBlockedDomain, pdftoppmFullPageDpiViolation } from '../policy.js';
 import { registerProvider } from './provider-registry.js';
 import type { AgentProvider, AgentQuery, McpServerConfig, ProviderEvent, ProviderOptions, QueryInput } from './types.js';
 
@@ -165,7 +165,7 @@ function formatTranscriptMarkdown(messages: ParsedMessage[], title?: string | nu
  * references one (known dead-end / out-of-lane sources), independent of and
  * un-overridable by soft instructions or accumulated session history.
  */
-function createPreToolUseHook(blockedDomains: string[] = []): HookCallback {
+function createPreToolUseHook(blockedDomains: string[] = [], maxFullPageRenderDpi: number | null = null): HookCallback {
   return async (input) => {
     const i = input as { tool_name?: string; tool_input?: Record<string, unknown> };
     const toolName = i.tool_name ?? '';
@@ -174,6 +174,20 @@ function createPreToolUseHook(blockedDomains: string[] = []): HookCallback {
         decision: 'block',
         stopReason: `Tool '${toolName}' is not available in this environment — use the nanoclaw equivalent.`,
       } as unknown as ReturnType<HookCallback>;
+    }
+    // Hard full-page render-DPI cap. Soft "render at 150" prompts kept leaking
+    // to 300-DPI full pages (the dominant latency+token sink); enforce it. A
+    // crop (poppler -x/-W) is always allowed — that's the sanctioned high-DPI path.
+    if (maxFullPageRenderDpi && toolName === 'Bash') {
+      const cmd = String(i.tool_input?.command ?? '');
+      const dpi = pdftoppmFullPageDpiViolation(cmd, maxFullPageRenderDpi);
+      if (dpi !== null) {
+        log(`PreToolUse: blocked pdftoppm full-page render at ${dpi} DPI (cap ${maxFullPageRenderDpi})`);
+        return {
+          decision: 'block',
+          stopReason: `Blocked: full-page \`pdftoppm -r ${dpi}\` exceeds the ${maxFullPageRenderDpi}-DPI full-page cap. Render the full page at ≤${maxFullPageRenderDpi}; to read fine detail, re-render a CROP at higher DPI with poppler crop flags (-x -y -W -H). Do not up-res the whole page — and don't page-hunt the map (use the index sheet; see locate-lot-on-map.md).`,
+        } as unknown as ReturnType<HookCallback>;
+      }
     }
     // Hard domain deny. agent-browser rides through Bash; direct fetches use
     // Bash (curl) or WebFetch. Check both command and url fields.
@@ -365,6 +379,7 @@ export class ClaudeProvider implements AgentProvider {
   private model?: string;
   private effort?: string;
   private blockedDomains: string[];
+  private maxFullPageRenderDpi: number | null;
 
   constructor(options: ProviderOptions = {}) {
     this.assistantName = options.assistantName;
@@ -373,6 +388,7 @@ export class ClaudeProvider implements AgentProvider {
     this.model = options.model;
     this.effort = options.effort;
     this.blockedDomains = options.blockedDomains ?? [];
+    this.maxFullPageRenderDpi = options.maxFullPageRenderDpi ?? null;
     this.env = {
       ...(options.env ?? {}),
       CLAUDE_CODE_AUTO_COMPACT_WINDOW,
@@ -453,7 +469,7 @@ export class ClaudeProvider implements AgentProvider {
         settingSources: ['project', 'user', 'local'],
         mcpServers: this.mcpServers,
         hooks: {
-          PreToolUse: [{ hooks: [createPreToolUseHook(this.blockedDomains)] }],
+          PreToolUse: [{ hooks: [createPreToolUseHook(this.blockedDomains, this.maxFullPageRenderDpi)] }],
           PostToolUse: [{ hooks: [postToolUseHook] }],
           PostToolUseFailure: [{ hooks: [postToolUseHook] }],
           PreCompact: [{ hooks: [createPreCompactHook(this.assistantName)] }],

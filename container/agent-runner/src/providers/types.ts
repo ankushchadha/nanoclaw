@@ -55,6 +55,11 @@ export interface ProviderOptions {
    * (Bash + WebFetch). See RunnerPolicy.blockedDomains. Empty = no restriction.
    */
   blockedDomains?: string[];
+  /**
+   * Cap on `pdftoppm` full-page render DPI (null/undefined = no cap). Enforced
+   * as a hard PreToolUse deny on Bash. See RunnerPolicy.maxFullPageRenderDpi.
+   */
+  maxFullPageRenderDpi?: number | null;
 }
 
 export interface QueryInput {
