@@ -434,6 +434,16 @@ async function buildContainerArgs(
 ): Promise<string[]> {
   const args: string[] = ['run', '--rm', '--name', containerName, '--label', CONTAINER_INSTALL_LABEL];
 
+  // Headless-Chromium ergonomics (agent-browser is in every agent image):
+  // --shm-size=1g — Docker's default /dev/shm is 64MB; Chromium starves on it
+  //   for heavy pages (maps, PDFs, ArcGIS tiles), spilling to disk (slow + extra
+  //   disk I/O) or crashing. 1g keeps the browser fast and stable.
+  // --init — reap zombie Chromium child processes across long multi-step runs so
+  //   defunct PIDs don't accumulate. (Profiling showed CPU/mem are NOT the bound —
+  //   the container sits I/O-wait-bound on network + LLM turns — so we add only
+  //   what fixes a real failure mode, not blanket resource bumps.)
+  args.push('--shm-size=1g', '--init');
+
   // Environment — only vars read by code we don't own.
   // Everything NanoClaw-specific is in container.json (read by runner at startup).
   args.push('-e', `TZ=${TIMEZONE}`);
