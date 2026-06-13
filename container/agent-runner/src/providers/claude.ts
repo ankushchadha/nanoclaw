@@ -474,8 +474,49 @@ export class ClaudeProvider implements AgentProvider {
 
         if (message.type === 'system' && message.subtype === 'init') {
           yield { type: 'init', continuation: message.session_id };
+        } else if (message.type === 'assistant') {
+          // Per-turn token usage (token-cost profiling). cache_read vs input shows
+          // prompt-cache effectiveness; out tracks generation cost.
+          const u = (
+            message as unknown as {
+              message?: {
+                usage?: {
+                  input_tokens?: number;
+                  output_tokens?: number;
+                  cache_read_input_tokens?: number;
+                  cache_creation_input_tokens?: number;
+                };
+              };
+            }
+          ).message?.usage;
+          if (u) {
+            log(
+              `Turn usage: in=${u.input_tokens ?? 0} out=${u.output_tokens ?? 0} ` +
+                `cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0}`,
+            );
+          }
         } else if (message.type === 'result') {
-          const text = 'result' in message ? (message as { result?: string }).result ?? null : null;
+          const m = message as unknown as {
+            result?: string;
+            usage?: {
+              input_tokens?: number;
+              output_tokens?: number;
+              cache_read_input_tokens?: number;
+              cache_creation_input_tokens?: number;
+            };
+            total_cost_usd?: number;
+            num_turns?: number;
+          };
+          const u = m.usage;
+          if (u) {
+            log(
+              `Run usage (cumulative): in=${u.input_tokens ?? 0} out=${u.output_tokens ?? 0} ` +
+                `cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0}` +
+                `${m.num_turns != null ? ` turns=${m.num_turns}` : ''}` +
+                `${m.total_cost_usd != null ? ` cost=$${m.total_cost_usd.toFixed(4)}` : ''}`,
+            );
+          }
+          const text = m.result ?? null;
           yield { type: 'result', text };
         } else if (message.type === 'system' && (message as { subtype?: string }).subtype === 'api_retry') {
           yield { type: 'error', message: 'API retry', retryable: true };
