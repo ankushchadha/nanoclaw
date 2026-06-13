@@ -26,6 +26,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { loadConfig } from './config.js';
+import { loadRunnerPolicy } from './policy.js';
 import { buildSystemPromptAddendum } from './destinations.js';
 // Providers barrel — each enabled provider self-registers on import.
 // Provider skills append imports to providers/index.ts.
@@ -41,6 +42,9 @@ const CWD = '/workspace/agent';
 
 async function main(): Promise<void> {
   const config = loadConfig();
+  const policy = loadRunnerPolicy();
+  if (policy.stateless) log('Runner policy: stateless (no session resume)');
+  if (policy.blockedDomains.length > 0) log(`Runner policy: ${policy.blockedDomains.length} blocked domain(s)`);
   const providerName = config.provider.toLowerCase() as ProviderName;
 
   log(`Starting v2 agent-runner (provider: ${providerName})`);
@@ -93,6 +97,7 @@ async function main(): Promise<void> {
     additionalDirectories: additionalDirectories.length > 0 ? additionalDirectories : undefined,
     model: config.model,
     effort: config.effort,
+    blockedDomains: policy.blockedDomains,
   });
 
   await runPollLoop({
@@ -100,6 +105,7 @@ async function main(): Promise<void> {
     providerName,
     cwd: CWD,
     systemContext: { instructions },
+    stateless: policy.stateless,
   });
 }
 

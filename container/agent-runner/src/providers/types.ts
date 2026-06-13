@@ -50,6 +50,11 @@ export interface ProviderOptions {
    * through to the underlying SDK. If omitted, the SDK default is used.
    */
   effort?: string;
+  /**
+   * Domains the agent must never reach. Enforced as a hard PreToolUse deny
+   * (Bash + WebFetch). See RunnerPolicy.blockedDomains. Empty = no restriction.
+   */
+  blockedDomains?: string[];
 }
 
 export interface QueryInput {

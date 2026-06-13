@@ -63,6 +63,12 @@ export interface PollLoopConfig {
   systemContext?: {
     instructions?: string;
   };
+  /**
+   * When true, never resume a prior session — start fresh every spawn. For
+   * stateless research workers (see RunnerPolicy.stateless). Clears any stored
+   * continuation so accumulated history can't carry over (or re-pollute).
+   */
+  stateless?: boolean;
 }
 
 /**
@@ -82,6 +88,16 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
   // other providers may reload a thread ID, etc.). Keyed per-provider so
   // a Codex thread id never gets handed to Claude or vice versa.
   let continuation: string | undefined = migrateLegacyContinuation(config.providerName);
+
+  // Stateless mode: never resume. Clear any stored continuation so a prior
+  // request's session (and its browsing habits) can't carry over or
+  // re-pollute. Each spawn starts clean — correct for independent-request
+  // research workers whose durable memory is the brain + workspace files.
+  if (config.stateless && continuation) {
+    log('Stateless mode — dropping prior session, starting fresh');
+    clearContinuation(config.providerName);
+    continuation = undefined;
+  }
 
   // Before resuming, drop a session whose on-disk transcript has grown too
   // large/old to cold-resume within the host's idle ceiling. Without this a
