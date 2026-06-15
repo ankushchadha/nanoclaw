@@ -248,7 +248,7 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     // can stamp it on outbound rows — needed for a2a return-path routing.
     setCurrentInReplyTo(routing.inReplyTo);
     try {
-      const result = await processQuery(query, routing, processingIds, config.providerName);
+      const result = await processQuery(query, routing, processingIds, config.providerName, config.stateless ?? false);
       if (result.continuation && result.continuation !== continuation) {
         continuation = result.continuation;
         setContinuation(config.providerName, continuation);
@@ -283,6 +283,21 @@ export async function runPollLoop(config: PollLoopConfig): Promise<void> {
     // (e.g. stream closed unexpectedly).
     markCompleted(processingIds);
     log(`Completed ${ids.length} message(s)`);
+
+    // Stateless reap: a stateless research worker is one-shot per request — once
+    // the batch is processed (turn ended), there's nothing to keep warm for. A
+    // warm container otherwise polls idle until the host sweep stale-kills it
+    // (~30 min ≈ 67% of a delivered run's wall-clock — measured on 201/7591).
+    // Exit now so the slot frees immediately; a follow-up message just spawns a
+    // fresh stateless container. Conversational hubs leave stateless off and
+    // keep polling. Exit (not return) is deterministic — the SDK's MCP
+    // subprocess + open handles can otherwise keep the process alive. Defer one
+    // tick so the final log + DB ack flush through Docker's log driver first.
+    if (config.stateless) {
+      log('Stateless reap: request processed — exiting so the container is reaped promptly');
+      await sleep(150);
+      process.exit(0);
+    }
   }
 }
 
@@ -329,6 +344,7 @@ async function processQuery(
   routing: RoutingContext,
   initialBatchIds: string[],
   providerName: string,
+  stateless: boolean,
 ): Promise<QueryResult> {
   let queryContinuation: string | undefined;
   let done = false;
@@ -345,9 +361,10 @@ async function processQuery(
   // will kill the container and messages get reset to pending.
   let pollInFlight = false;
   let endedForCommand = false;
+  let endedForReap = false;
   let corruptionStreak = 0;
   const pollHandle = setInterval(() => {
-    if (done || pollInFlight || endedForCommand) return;
+    if (done || pollInFlight || endedForCommand || endedForReap) return;
     pollInFlight = true;
 
     void (async () => {
@@ -470,10 +487,12 @@ async function processQuery(
         // (send_message) mid-turn, or the message may not need a response
         // at all — either way the turn is finished.
         markCompleted(initialBatchIds);
+        let pushedNudgeThisTurn = false;
         if (event.text) {
           const { hasUnwrapped } = dispatchResultText(event.text, routing);
           if (hasUnwrapped && !unwrappedNudged) {
             unwrappedNudged = true;
+            pushedNudgeThisTurn = true;
             const destinations = getAllDestinations();
             const names = destinations.map((d) => d.name).join(', ');
             query.push(
@@ -482,6 +501,23 @@ async function processQuery(
                 `Your destinations: ${names}. ` +
                 `Please re-send your response with the correct wrapping.</system>`,
             );
+          }
+        }
+        // Stateless reap: a stateless worker is one-shot — don't keep the query
+        // warm after a turn. Once the turn is done with nothing pending, END the
+        // query so processQuery returns and the outer loop reaps the container
+        // promptly. Without this the query stays open and the container lingers
+        // ~30 min until the host stale-sweep kills it (the idle tail measured on
+        // the 201/7591/Groveland runs — `end-of-turn` ends the TURN but not the
+        // warm query). Skip if we just pushed a re-send nudge (the agent still
+        // owes a wrapped reply). A follow-up arriving later spawns a fresh
+        // stateless container, so nothing is lost.
+        if (stateless && !endedForReap && !pushedNudgeThisTurn) {
+          const stillPending = getPendingMessages().filter((m) => m.kind !== 'system' && m.trigger === 1);
+          if (stillPending.length === 0) {
+            log('Stateless: turn complete, nothing pending — ending query so the container reaps promptly');
+            endedForReap = true;
+            query.end();
           }
         }
       }
