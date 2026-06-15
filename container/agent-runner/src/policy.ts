@@ -40,9 +40,37 @@ export interface RunnerPolicy {
    * converts the cap from advisory to enforced.
    */
   maxFullPageRenderDpi: number | null;
+  /**
+   * Cap on the TOTAL number of `pdftoppm` renders (full-page OR crop) per run
+   * (null = no cap). Beyond this, further renders are HARD-blocked at PreToolUse.
+   * The DPI cap bounds the cost of ONE render; this bounds the COUNT. A single
+   * map read is ~3-5 renders (index + target sheet + a crop); a healthy
+   * multi-document parcel ~10. The 201-Latera grind rendered ~50 sheets across
+   * SIX candidate recorded maps it couldn't disambiguate — soft "fetch one map /
+   * few renders" rules leaked. This converts the count cap from advisory to
+   * enforced, forcing the agent to commit to one map and deliver.
+   */
+  maxRendersPerRun: number | null;
+  /**
+   * Cap on how many times the EXACT same Bash command may be issued per run
+   * (null = no cap). The (N+1)th identical command is HARD-blocked at PreToolUse
+   * with a steer to stop looping and flag-the-subgoal-open + deliver. Catches
+   * the "go-back → re-search → re-click the same tab" grind (201/7591 burned
+   * ~20 turns re-running the identical tax-collector assessment-tab flow chasing
+   * a field that tab doesn't expose). Soft "few attempts then flag" leaked; this
+   * is the deterministic loop-breaker. Set high enough that legit repeated steps
+   * don't trip it.
+   */
+  maxIdenticalCommands: number | null;
 }
 
-const DEFAULT_POLICY: RunnerPolicy = { stateless: false, blockedDomains: [], maxFullPageRenderDpi: null };
+const DEFAULT_POLICY: RunnerPolicy = {
+  stateless: false,
+  blockedDomains: [],
+  maxFullPageRenderDpi: null,
+  maxRendersPerRun: null,
+  maxIdenticalCommands: null,
+};
 const DEFAULT_POLICY_PATH = '/workspace/agent/runner-policy.json';
 
 /** Read + validate the policy file. Missing/malformed → safe defaults. */
@@ -63,6 +91,14 @@ export function loadRunnerPolicy(policyPath: string = DEFAULT_POLICY_PATH): Runn
       maxFullPageRenderDpi:
         typeof parsed.maxFullPageRenderDpi === 'number' && parsed.maxFullPageRenderDpi > 0
           ? parsed.maxFullPageRenderDpi
+          : null,
+      maxRendersPerRun:
+        typeof parsed.maxRendersPerRun === 'number' && parsed.maxRendersPerRun > 0
+          ? parsed.maxRendersPerRun
+          : null,
+      maxIdenticalCommands:
+        typeof parsed.maxIdenticalCommands === 'number' && parsed.maxIdenticalCommands > 0
+          ? parsed.maxIdenticalCommands
           : null,
     };
   } catch {
@@ -85,6 +121,16 @@ export function pdftoppmFullPageDpiViolation(command: string, capDpi: number): n
   // A genuine crop sets all four poppler crop flags; allow those at any DPI.
   const hasCrop = /(?:^|\s)-x\s+\d/.test(command) && /(?:^|\s)-W\s+\d/.test(command);
   return hasCrop ? null : dpi;
+}
+
+/**
+ * Pure matcher: is this command a `pdftoppm` render invocation (any DPI, full
+ * page or crop)? Used to COUNT renders per run against `maxRendersPerRun`.
+ * Distinct from the DPI matcher above (which judges a single render's cost);
+ * this just asks "is this one more render?" so the per-run total can be capped.
+ */
+export function isPdftoppmRender(command: string): boolean {
+  return /\bpdftoppm\b/.test(command);
 }
 
 /**

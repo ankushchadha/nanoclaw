@@ -46,6 +46,8 @@ async function main(): Promise<void> {
   if (policy.stateless) log('Runner policy: stateless (no session resume)');
   if (policy.blockedDomains.length > 0) log(`Runner policy: ${policy.blockedDomains.length} blocked domain(s)`);
   if (policy.maxFullPageRenderDpi) log(`Runner policy: full-page render cap ${policy.maxFullPageRenderDpi} DPI`);
+  if (policy.maxRendersPerRun) log(`Runner policy: max ${policy.maxRendersPerRun} renders/run`);
+  if (policy.maxIdenticalCommands) log(`Runner policy: max ${policy.maxIdenticalCommands} identical commands/run`);
   const providerName = config.provider.toLowerCase() as ProviderName;
 
   log(`Starting v2 agent-runner (provider: ${providerName})`);
@@ -100,6 +102,8 @@ async function main(): Promise<void> {
     effort: config.effort,
     blockedDomains: policy.blockedDomains,
     maxFullPageRenderDpi: policy.maxFullPageRenderDpi,
+    maxRendersPerRun: policy.maxRendersPerRun,
+    maxIdenticalCommands: policy.maxIdenticalCommands,
   });
 
   await runPollLoop({

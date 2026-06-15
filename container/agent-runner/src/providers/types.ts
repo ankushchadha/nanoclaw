@@ -60,6 +60,18 @@ export interface ProviderOptions {
    * as a hard PreToolUse deny on Bash. See RunnerPolicy.maxFullPageRenderDpi.
    */
   maxFullPageRenderDpi?: number | null;
+  /**
+   * Cap on the total number of `pdftoppm` renders per run (null/undefined = no
+   * cap). Enforced as a hard PreToolUse deny on Bash once exceeded. See
+   * RunnerPolicy.maxRendersPerRun.
+   */
+  maxRendersPerRun?: number | null;
+  /**
+   * Cap on identical-Bash-command repetitions per run (null/undefined = no cap).
+   * The (N+1)th identical command is hard-blocked at PreToolUse. See
+   * RunnerPolicy.maxIdenticalCommands.
+   */
+  maxIdenticalCommands?: number | null;
 }
 
 export interface QueryInput {

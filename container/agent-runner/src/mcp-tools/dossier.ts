@@ -44,12 +44,21 @@ export const deliverDossier: McpToolDefinition = {
       properties: {
         apn: { type: 'string', description: 'The APN — the per-property folder under properties/<apn>/ where dossier.md lives.' },
         address: { type: 'string', description: 'Human-readable address for the DONE line (e.g. "270 Live Oak Dr, Danville").' },
-        to: { type: 'string', description: 'Destination name. Optional — defaults to the requester (current conversation, i.e. Nano).' },
+        to: { type: 'string', description: 'Destination name. OMIT this — it defaults to the requester (the current conversation / whoever dispatched the request, which may be Nano, Mira, or another hub). Only pass an explicit name to send somewhere other than the requester. Passing the wrong hub mis-delivers a dossier to the wrong person.' },
       },
       required: ['apn', 'address'],
     },
   },
   async handler(args) {
+    // Clear any stale end-of-turn sentinel up front — a FAILED delivery must
+    // never inherit a prior run's success flag (which would wrongly end the
+    // turn before a retry). Only a verified success below re-writes it.
+    try {
+      if (fs.existsSync('/workspace/outbox/.dossier-delivered')) fs.unlinkSync('/workspace/outbox/.dossier-delivered');
+    } catch {
+      /* noop */
+    }
+
     const apn = (args.apn as string)?.trim();
     const address = (args.address as string)?.trim();
     if (!apn) return err('apn is required');
@@ -102,6 +111,17 @@ export const deliverDossier: McpToolDefinition = {
       thread_id: routing.thread_id,
       content: JSON.stringify({ text: `DONE: ${address} — dossier delivered (PDF)`, files: [filename] }),
     });
+
+    // Sentinel for the PostToolUse end-of-turn hard-stop. Written ONLY here, on
+    // a verified-success delivery — the agent-runner's PostToolUse hook sees it
+    // and ends the turn, so the soft "END YOUR TURN" rule can't leak into
+    // post-DONE rambling. Best-effort: a write failure just means the turn won't
+    // hard-stop (degrades to the old soft behavior), never blocks delivery.
+    try {
+      fs.writeFileSync('/workspace/outbox/.dossier-delivered', apn);
+    } catch (e) {
+      log(`deliver_dossier: sentinel write failed (non-fatal): ${e instanceof Error ? e.message : String(e)}`);
+    }
 
     log(`deliver_dossier: ${apn} (${size} bytes) → ${routing.resolvedName} with DONE`);
     return ok(`Delivered ${filename} (${size} bytes, verified PDF) to ${routing.resolvedName} with a single DONE. Delivery complete — END YOUR TURN; do not send any further message.`);

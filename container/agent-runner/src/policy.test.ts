@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { findBlockedDomain, loadRunnerPolicy, pdftoppmFullPageDpiViolation } from './policy.js';
+import { findBlockedDomain, isPdftoppmRender, loadRunnerPolicy, pdftoppmFullPageDpiViolation } from './policy.js';
 
 describe('pdftoppmFullPageDpiViolation', () => {
   const cap = 150;
@@ -23,6 +23,49 @@ describe('pdftoppmFullPageDpiViolation', () => {
   });
   test('no -r flag → null', () => {
     expect(pdftoppmFullPageDpiViolation('pdftoppm -png -f 6 -l 6 in.pdf out', cap)).toBeNull();
+  });
+});
+
+describe('isPdftoppmRender', () => {
+  test('matches a full-page render', () => {
+    expect(isPdftoppmRender('pdftoppm -png -r 150 -f 1 -l 1 map.pdf out')).toBe(true);
+  });
+  test('matches a cropped render', () => {
+    expect(isPdftoppmRender('pdftoppm -png -r 300 -x 100 -y 200 -W 400 -H 300 -f 2 -l 2 map.pdf out')).toBe(true);
+  });
+  test('does not match non-render commands', () => {
+    expect(isPdftoppmRender('pdftotext deed.pdf -')).toBe(false);
+    expect(isPdftoppmRender('agent-browser open https://taxcolp.cccttc.us/lookup/')).toBe(false);
+  });
+});
+
+describe('loadRunnerPolicy maxRendersPerRun', () => {
+  test('parses a positive cap; rejects non-positive / missing', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'policy-'));
+    const a = path.join(dir, 'a.json');
+    fs.writeFileSync(a, JSON.stringify({ maxRendersPerRun: 15 }));
+    expect(loadRunnerPolicy(a).maxRendersPerRun).toBe(15);
+    const b = path.join(dir, 'b.json');
+    fs.writeFileSync(b, JSON.stringify({ maxRendersPerRun: 0 }));
+    expect(loadRunnerPolicy(b).maxRendersPerRun).toBe(null);
+    const c = path.join(dir, 'c.json');
+    fs.writeFileSync(c, JSON.stringify({ stateless: true }));
+    expect(loadRunnerPolicy(c).maxRendersPerRun).toBe(null);
+  });
+});
+
+describe('loadRunnerPolicy maxIdenticalCommands', () => {
+  test('parses a positive cap; rejects non-positive / missing', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'policy-'));
+    const a = path.join(dir, 'a.json');
+    fs.writeFileSync(a, JSON.stringify({ maxIdenticalCommands: 6 }));
+    expect(loadRunnerPolicy(a).maxIdenticalCommands).toBe(6);
+    const b = path.join(dir, 'b.json');
+    fs.writeFileSync(b, JSON.stringify({ maxIdenticalCommands: -1 }));
+    expect(loadRunnerPolicy(b).maxIdenticalCommands).toBe(null);
+    const c = path.join(dir, 'c.json');
+    fs.writeFileSync(c, JSON.stringify({ stateless: true }));
+    expect(loadRunnerPolicy(c).maxIdenticalCommands).toBe(null);
   });
 });
 

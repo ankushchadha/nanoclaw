@@ -9,7 +9,7 @@ import { query as sdkQuery, type HookCallback, type PreCompactHookInput } from '
 const MAX_TURNS = Math.max(1, parseInt(process.env.NANOCLAW_MAX_TURNS || '150', 10) || 150);
 
 import { clearContainerToolInFlight, setContainerToolInFlight } from '../db/connection.js';
-import { findBlockedDomain, pdftoppmFullPageDpiViolation } from '../policy.js';
+import { findBlockedDomain, isPdftoppmRender, pdftoppmFullPageDpiViolation } from '../policy.js';
 import { registerProvider } from './provider-registry.js';
 import type { AgentProvider, AgentQuery, McpServerConfig, ProviderEvent, ProviderOptions, QueryInput } from './types.js';
 
@@ -165,7 +165,17 @@ function formatTranscriptMarkdown(messages: ParsedMessage[], title?: string | nu
  * references one (known dead-end / out-of-lane sources), independent of and
  * un-overridable by soft instructions or accumulated session history.
  */
-function createPreToolUseHook(blockedDomains: string[] = [], maxFullPageRenderDpi: number | null = null): HookCallback {
+function createPreToolUseHook(
+  blockedDomains: string[] = [],
+  maxFullPageRenderDpi: number | null = null,
+  maxRendersPerRun: number | null = null,
+  maxIdenticalCommands: number | null = null,
+): HookCallback {
+  // Per-run counters — this closure is created once per query() (one run), so
+  // they reset each request. renderCount bounds pdftoppm renders; cmdCounts is
+  // the loop-breaker (exact-identical Bash command repeated past the cap).
+  let renderCount = 0;
+  const cmdCounts = new Map<string, number>();
   return async (input) => {
     const i = input as { tool_name?: string; tool_input?: Record<string, unknown> };
     const toolName = i.tool_name ?? '';
@@ -174,6 +184,19 @@ function createPreToolUseHook(blockedDomains: string[] = [], maxFullPageRenderDp
         decision: 'block',
         stopReason: `Tool '${toolName}' is not available in this environment — use the nanoclaw equivalent.`,
       } as unknown as ReturnType<HookCallback>;
+    }
+    // Hard per-run render-COUNT cap. Soft "fetch one map / a few renders" rules
+    // leaked (201 Latera rendered ~50 sheets across 6 undisambiguated maps).
+    // Once the budget is spent, deny further renders and steer to deliver.
+    if (maxRendersPerRun && toolName === 'Bash' && isPdftoppmRender(String(i.tool_input?.command ?? ''))) {
+      renderCount += 1;
+      if (renderCount > maxRendersPerRun) {
+        log(`PreToolUse: blocked pdftoppm render #${renderCount} (cap ${maxRendersPerRun}/run)`);
+        return {
+          decision: 'block',
+          stopReason: `Blocked: render budget exhausted (${maxRendersPerRun} pdftoppm renders/run). You are map-hunting — likely rendering multiple candidate maps you couldn't disambiguate. STOP. Commit to the ONE recorded map whose Book/Page matches the tax-bill legal description (do not render more candidates), and if you cannot resolve it, record "recorded map: book/page unresolved" as an OPEN ITEM. Then write dossier.md and call deliver_dossier with the data you already have.`,
+        } as unknown as ReturnType<HookCallback>;
+      }
     }
     // Hard full-page render-DPI cap. Soft "render at 150" prompts kept leaking
     // to 300-DPI full pages (the dominant latency+token sink); enforce it. A
@@ -187,6 +210,24 @@ function createPreToolUseHook(blockedDomains: string[] = [], maxFullPageRenderDp
           decision: 'block',
           stopReason: `Blocked: full-page \`pdftoppm -r ${dpi}\` exceeds the ${maxFullPageRenderDpi}-DPI full-page cap. Render the full page at ≤${maxFullPageRenderDpi}; to read fine detail, re-render a CROP at higher DPI with poppler crop flags (-x -y -W -H). Do not up-res the whole page — and don't page-hunt the map (use the index sheet; see locate-lot-on-map.md).`,
         } as unknown as ReturnType<HookCallback>;
+      }
+    }
+    // Hard loop-breaker: the EXACT same Bash command repeated past the cap is a
+    // grind (re-running an identical portal sub-flow chasing data that isn't
+    // there). Block it and steer to flag-the-subgoal-open + deliver. Exact-match
+    // so legit varied steps don't trip; only a literal repeat counts.
+    if (maxIdenticalCommands && toolName === 'Bash') {
+      const cmd = String(i.tool_input?.command ?? '').trim();
+      if (cmd) {
+        const n = (cmdCounts.get(cmd) ?? 0) + 1;
+        cmdCounts.set(cmd, n);
+        if (n > maxIdenticalCommands) {
+          log(`PreToolUse: blocked identical command #${n} (cap ${maxIdenticalCommands}/run): ${cmd.slice(0, 80)}`);
+          return {
+            decision: 'block',
+            stopReason: `Blocked: you've run this exact command ${maxIdenticalCommands}+ times — it is not yielding new data (a loop). STOP re-running it. Record whatever this sub-goal was after as an OPEN ITEM with a where-to-look pointer, then move on / deliver with the data you already have. Do NOT keep retrying the same step.`,
+          } as unknown as ReturnType<HookCallback>;
+        }
       }
     }
     // Hard domain deny. agent-browser rides through Bash; direct fetches use
@@ -221,11 +262,35 @@ function createPreToolUseHook(blockedDomains: string[] = [], maxFullPageRenderDp
 }
 
 /** Clear in-flight tool on PostToolUse / PostToolUseFailure. */
-const postToolUseHook: HookCallback = async () => {
+/**
+ * Sentinel written by the deliver_dossier MCP tool ONLY on a verified-success
+ * delivery (real %PDF attached + single DONE emitted). Its presence in the
+ * PostToolUse hook is the un-spoofable "task is truly done" signal used to
+ * hard-end the turn — closing the post-DONE rambling leak ("standing by",
+ * redundant re-summary) that the soft "END YOUR TURN" rule never bound.
+ */
+const DELIVERED_SENTINEL = '/workspace/outbox/.dossier-delivered';
+
+const postToolUseHook: HookCallback = async (input) => {
   try {
     clearContainerToolInFlight();
   } catch (err) {
     log(`PostToolUse: failed to clear container_state: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  // Hard end-of-turn after a SUCCESSFUL deliver_dossier. A FAILED delivery
+  // writes no sentinel → no stop → the agent can fix + retry.
+  try {
+    const toolName = (input as { tool_name?: string })?.tool_name ?? '';
+    if (toolName.includes('deliver_dossier') && fs.existsSync(DELIVERED_SENTINEL)) {
+      fs.unlinkSync(DELIVERED_SENTINEL);
+      log('PostToolUse: deliver_dossier succeeded — ending turn (continue:false)');
+      return {
+        continue: false,
+        stopReason: 'Dossier delivered via deliver_dossier — turn complete; no further messages.',
+      } as unknown as ReturnType<HookCallback>;
+    }
+  } catch (err) {
+    log(`PostToolUse: delivery-stop check failed: ${err instanceof Error ? err.message : String(err)}`);
   }
   return { continue: true };
 };
@@ -380,6 +445,8 @@ export class ClaudeProvider implements AgentProvider {
   private effort?: string;
   private blockedDomains: string[];
   private maxFullPageRenderDpi: number | null;
+  private maxRendersPerRun: number | null;
+  private maxIdenticalCommands: number | null;
 
   constructor(options: ProviderOptions = {}) {
     this.assistantName = options.assistantName;
@@ -389,6 +456,8 @@ export class ClaudeProvider implements AgentProvider {
     this.effort = options.effort;
     this.blockedDomains = options.blockedDomains ?? [];
     this.maxFullPageRenderDpi = options.maxFullPageRenderDpi ?? null;
+    this.maxRendersPerRun = options.maxRendersPerRun ?? null;
+    this.maxIdenticalCommands = options.maxIdenticalCommands ?? null;
     this.env = {
       ...(options.env ?? {}),
       CLAUDE_CODE_AUTO_COMPACT_WINDOW,
@@ -469,7 +538,18 @@ export class ClaudeProvider implements AgentProvider {
         settingSources: ['project', 'user', 'local'],
         mcpServers: this.mcpServers,
         hooks: {
-          PreToolUse: [{ hooks: [createPreToolUseHook(this.blockedDomains, this.maxFullPageRenderDpi)] }],
+          PreToolUse: [
+            {
+              hooks: [
+                createPreToolUseHook(
+                  this.blockedDomains,
+                  this.maxFullPageRenderDpi,
+                  this.maxRendersPerRun,
+                  this.maxIdenticalCommands,
+                ),
+              ],
+            },
+          ],
           PostToolUse: [{ hooks: [postToolUseHook] }],
           PostToolUseFailure: [{ hooks: [postToolUseHook] }],
           PreCompact: [{ hooks: [createPreCompactHook(this.assistantName)] }],
