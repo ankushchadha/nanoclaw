@@ -1,0 +1,12 @@
+{
+  "stateless": false,
+  "allowedDomains": [
+    "coloradotime.com",
+    "hytek.active.com",
+    "activenetwork.my.salesforce-sites.com",
+    "marcoscorner.walther-family.org",
+    "manualslib.com"
+  ],
+  "blockedDomains": [],
+  "maxIdenticalCommands": 6
+}

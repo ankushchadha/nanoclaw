@@ -1,0 +1,79 @@
+# Path B: UDP / Ethernet Live-Data Link (names and events without a USB drive)
+
+> This is the path that eliminates the USB-drive download/upload workflow. It pushes start lists, swimmer names, and event sequence live. It uses a fixed UDP port and IP addressing, NOT a matched serial COM port.
+
+## The headline facts
+
+- **Fixed UDP port: `60287`.** This is the value that goes in the Remote Scoreboard Port box. [HIGH, F1034 pp. 84-85]
+- Configured in Meet Manager as a **Generic / UDP Ethernet** scoreboard interface.
+- Addressed by **IP**: the timer/Gen7 IP, or **`255.255.255.255` broadcast** for a single timer on the same subnet.
+- Requires the **Alpha Scoreboard license option** in Meet Manager.
+- Live name integration additionally requires an **RS-485** link from the Gen7 to the DisplayLink Plus computer (see version gating below). RS-232 is NOT supported for names.
+
+## Meet Manager configuration (UDP names/events)
+
+[HIGH, F1034 + Hy-Tek setupalphascbd.htm]
+
+1. **Set-up > Alpha Scoreboard Interface.** Choose **Generic** with **UDP Ethernet**.
+2. **Run > Interfaces > Scoreboard > Set UDP Port and IP Address.**
+   - Port: **`60287`**.
+   - IP: the Gen7/timer IP on the same subnet, or **`255.255.255.255`** (broadcast) when there is a single timer on the same subnet.
+3. Push the **first start list** with **`CTRL+F10`**.
+4. After the first push the link is **bi-directional**: Meet Manager **auto-requests a new start list** each time the event/heat changes. You do not re-trigger it manually per heat.
+
+## Gen7 / scoreboard side and the RS-485 requirement
+
+[HIGH, F1034 Appendix C "Athlete Name Integration"]
+
+- Names flow from the Gen7 to the **DisplayLink Plus (DL+)** scoreboard computer over **RS-485**. **RS-232 will not carry name integration.**
+- Software floors:
+
+| Live feature | Gen7 Swimming | DL+ | Wiring |
+|--------------|---------------|-----|--------|
+| Swimmer **names** | v2023+ | v4.6.0+ | RS-485 |
+| **Team Scores** + **Complete Event Results** | v2026 | v4.7.0 | RS-485 + UDP |
+
+- **User's stack (Gen7 Swimming 2024.0.1 + DisplayLink 4.7):** clears the **names** floor. Does **not** meet the **v2026** Gen7 pairing required for Team Scores / Complete Event Results, so expect names to work but full live results/scores to be unavailable until the Gen7 software is on the v2026 line. Verify installed versions on the actual machines.
+
+## The DisplayLink-naming caveat (resolve before trusting v2026 claims)
+
+"DisplayLink 4.7" is ambiguous:
+
+- If it is **DL+ (the CTS scoreboard app) v4.7.0**, it meets the DL+ floor for v2026 features, but the **Gen7 Swimming software still has to be v2026** for Team Scores/Complete Event Results. Names work today.
+- If it is the **generic DisplayLink USB-graphics driver v4.7**, that version number is unrelated to CTS feature gates entirely. It only governs driving an extra display over USB.
+
+Check the installed component before asserting feature availability. See open questions in `06-pre-meet-checklist.md`.
+
+## Gen7 networking facts (for IP setup and firewall/egress)
+
+[HIGH, F1066 Gen7 Networking Information]
+
+- The Gen7 timer supports an **Ethernet connection** to an interface computer (laptop/PC) in addition to scoreboard connections.
+- The **timer and control laptops must share the same physical network** (laptops may be on Wi-Fi, the timer on Ethernet) to enable **auto-discovery**: laptop software finds the timer automatically. If not found, **enter the IP manually**. [HIGH, F1066 + ManualsLib]
+- The named Ethernet timer-to-computer cable is the **R-SJ-xx**.
+- **Three ports must be open within the subnet** (and need not route beyond it):
+
+| Port | Service | Notes |
+|------|---------|-------|
+| **TCP 22** | SSH | No remote root login; factory-randomized password |
+| **TCP 7105** | Primary Gen7 Control Service | Encrypted with authentication |
+| **UDP 5353** | Zeroconf / mDNS | Used for auto-discovery (IANA mDNS port) |
+
+> For the CTS agent's egress-allowlist / firewall guidance: if auto-discovery fails, suspect UDP 5353 blocked or the laptop being on a different subnet/VLAN than the timer. If control fails after discovery, suspect TCP 7105.
+
+## Important scope nuance: do not conflate the two "UDP" toggles
+
+Meet Manager's **generic timing-console interface** also exposes a Serial-vs-UDP Connection Method selector, but that **UDP Ethernet radio is surfaced for the OmniSport 2000**, a different (Daktronics) timer. [Verified, with 2-1 scope caveat]
+
+- For the **Gen7**, the live UDP names/results path is the **Alpha Scoreboard Interface on port 60287**, NOT the OmniSport-2000 Connection Method toggle.
+- So: Gen7 **times** come over the **serial/USB timer interface (Path A)**; Gen7 **live names/events** come over the **Alpha Scoreboard UDP interface, port 60287 (Path B)**. Two different Meet Manager menus.
+
+## Quick UDP-path failure decode
+
+| Symptom | Most likely cause |
+|---------|-------------------|
+| Names never appear on the board | RS-485 not connected, or RS-232 used by mistake (names need RS-485); or DL+/Gen7 below version floor |
+| First start list never shows | Forgot `CTRL+F10` to push it; wrong UDP port (must be 60287); wrong IP/broadcast |
+| Names show but Team Scores/full results do not | Gen7 not on v2026 / DL+ not on v4.7.0 (expected on the user's 2024.0.1 stack) |
+| Timer not auto-discovered | Laptop and timer on different physical networks/subnets, or UDP 5353 blocked. Enter IP manually |
+| "Event Sequence not received from meet management software" | Meet-management cable not connected to both PC and the Gen7 **Meet Management port**, OR a race is currently active (wait until it finishes) [HIGH, Gen7 manual p.46] |
