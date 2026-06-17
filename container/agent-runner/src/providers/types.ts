@@ -56,6 +56,12 @@ export interface ProviderOptions {
    */
   blockedDomains?: string[];
   /**
+   * Allow-list of domains the agent may fetch. When non-empty, every other
+   * http(s) URL (WebFetch + Bash curl/wget) is hard-blocked at PreToolUse. See
+   * RunnerPolicy.allowedDomains. Empty/undefined = no allow-list restriction.
+   */
+  allowedDomains?: string[];
+  /**
    * Cap on `pdftoppm` full-page render DPI (null/undefined = no cap). Enforced
    * as a hard PreToolUse deny on Bash. See RunnerPolicy.maxFullPageRenderDpi.
    */

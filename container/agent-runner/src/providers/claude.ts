@@ -9,7 +9,7 @@ import { query as sdkQuery, type HookCallback, type PreCompactHookInput } from '
 const MAX_TURNS = Math.max(1, parseInt(process.env.NANOCLAW_MAX_TURNS || '150', 10) || 150);
 
 import { clearContainerToolInFlight, setContainerToolInFlight } from '../db/connection.js';
-import { findBlockedDomain, isPdftoppmRender, pdftoppmFullPageDpiViolation } from '../policy.js';
+import { findBlockedDomain, findDisallowedUrl, isPdftoppmRender, pdftoppmFullPageDpiViolation } from '../policy.js';
 import { registerProvider } from './provider-registry.js';
 import type { AgentProvider, AgentQuery, McpServerConfig, ProviderEvent, ProviderOptions, QueryInput } from './types.js';
 
@@ -170,6 +170,7 @@ function createPreToolUseHook(
   maxFullPageRenderDpi: number | null = null,
   maxRendersPerRun: number | null = null,
   maxIdenticalCommands: number | null = null,
+  allowedDomains: string[] = [],
 ): HookCallback {
   // Per-run counters — this closure is created once per query() (one run), so
   // they reset each request. renderCount bounds pdftoppm renders; cmdCounts is
@@ -245,6 +246,26 @@ function createPreToolUseHook(
         return {
           decision: 'block',
           stopReason: `Blocked: '${hit}' is a known dead-end / out-of-lane source for this agent. Do NOT navigate there. Follow your authoritative-source recipe instead; if you cannot retrieve the data from an approved source, STOP and ask the requester rather than improvising.`,
+        } as unknown as ReturnType<HookCallback>;
+      }
+    }
+    // Hard ALLOW-LIST egress. When the group declares allowedDomains, any http(s)
+    // URL outside that set (in a WebFetch url or a Bash curl/wget command) is
+    // denied — lane-keeping to a small vetted source set. Plain Bash with no URL
+    // passes (no URL extracted → no match). Deny-list above takes precedence.
+    if (allowedDomains.length > 0) {
+      const probe =
+        toolName === 'Bash'
+          ? String(i.tool_input?.command ?? '')
+          : toolName === 'WebFetch'
+            ? String(i.tool_input?.url ?? '')
+            : '';
+      const bad = findDisallowedUrl(probe, allowedDomains);
+      if (bad) {
+        log(`PreToolUse: blocked '${toolName}' — host '${bad}' not in allowlist`);
+        return {
+          decision: 'block',
+          stopReason: `Blocked: '${bad}' is not in this agent's allowed-source list. You may only fetch from: ${allowedDomains.join(', ')}. Answer from your local knowledge base first; if a fact is not covered there or on an allowed source, DEFER — tell the operator you don't have it and ask, rather than fetching an unapproved page.`,
         } as unknown as ReturnType<HookCallback>;
       }
     }
@@ -444,6 +465,7 @@ export class ClaudeProvider implements AgentProvider {
   private model?: string;
   private effort?: string;
   private blockedDomains: string[];
+  private allowedDomains: string[];
   private maxFullPageRenderDpi: number | null;
   private maxRendersPerRun: number | null;
   private maxIdenticalCommands: number | null;
@@ -455,6 +477,7 @@ export class ClaudeProvider implements AgentProvider {
     this.model = options.model;
     this.effort = options.effort;
     this.blockedDomains = options.blockedDomains ?? [];
+    this.allowedDomains = options.allowedDomains ?? [];
     this.maxFullPageRenderDpi = options.maxFullPageRenderDpi ?? null;
     this.maxRendersPerRun = options.maxRendersPerRun ?? null;
     this.maxIdenticalCommands = options.maxIdenticalCommands ?? null;
@@ -546,6 +569,7 @@ export class ClaudeProvider implements AgentProvider {
                   this.maxFullPageRenderDpi,
                   this.maxRendersPerRun,
                   this.maxIdenticalCommands,
+                  this.allowedDomains,
                 ),
               ],
             },

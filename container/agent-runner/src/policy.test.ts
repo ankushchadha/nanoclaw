@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { findBlockedDomain, isPdftoppmRender, loadRunnerPolicy, pdftoppmFullPageDpiViolation } from './policy.js';
+import { findBlockedDomain, findDisallowedUrl, isPdftoppmRender, loadRunnerPolicy, pdftoppmFullPageDpiViolation } from './policy.js';
 
 describe('pdftoppmFullPageDpiViolation', () => {
   const cap = 150;
@@ -99,11 +99,77 @@ describe('findBlockedDomain', () => {
   });
 });
 
+describe('findDisallowedUrl (allow-list egress)', () => {
+  const allow = ['coloradotime.com', 'hytek.active.com'];
+  test('empty allow-list → off (null)', () => {
+    expect(findDisallowedUrl('curl https://anything.example.com', [])).toBeNull();
+  });
+  test('no URL in text → passes (null)', () => {
+    expect(findDisallowedUrl('ls -la /workspace && cat file.md', allow)).toBeNull();
+  });
+  test('allowed host (exact) → null', () => {
+    expect(findDisallowedUrl('WebFetch https://coloradotime.com/support/manuals', allow)).toBeNull();
+  });
+  test('allowed host (subdomain) → null', () => {
+    expect(findDisallowedUrl('curl https://www.coloradotime.com/hubfs/x.pdf', allow)).toBeNull();
+  });
+  test('disallowed host → returns host', () => {
+    expect(findDisallowedUrl('curl https://zillow.com/foo', allow)).toBe('zillow.com');
+  });
+  test('look-alike host does NOT slip through (suffix attack)', () => {
+    expect(findDisallowedUrl('curl https://coloradotime.com.evil.com/x', allow)).toBe('coloradotime.com.evil.com');
+    expect(findDisallowedUrl('curl https://evilcoloradotime.com/x', allow)).toBe('evilcoloradotime.com');
+  });
+  test('userinfo on an allowed host → allowed (creds stripped)', () => {
+    expect(findDisallowedUrl('curl https://user:tok@coloradotime.com/x', allow)).toBeNull();
+  });
+  test('userinfo disguise → evaluates TRUE host and blocks it', () => {
+    // real destination is evil.com; the allowed-looking userinfo must not admit it
+    expect(findDisallowedUrl('curl https://coloradotime.com@evil.com/x', allow)).toBe('evil.com');
+  });
+  test('trailing-dot FQDN on an allowed host → allowed', () => {
+    expect(findDisallowedUrl('curl https://coloradotime.com./x', allow)).toBeNull();
+  });
+  test('first disallowed URL among several is reported', () => {
+    const cmd = 'curl https://coloradotime.com/a && curl https://reddit.com/b';
+    expect(findDisallowedUrl(cmd, allow)).toBe('reddit.com');
+  });
+  test('port is stripped before matching', () => {
+    expect(findDisallowedUrl('curl https://coloradotime.com:443/x', allow)).toBeNull();
+  });
+});
+
 describe('loadRunnerPolicy', () => {
   test('missing file → safe defaults', () => {
     const p = loadRunnerPolicy(path.join(os.tmpdir(), 'does-not-exist-policy.json'));
     expect(p.stateless).toBe(false);
     expect(p.blockedDomains).toEqual([]);
+    expect(p.allowedDomains).toEqual([]);
+  });
+
+  test('parses allowedDomains, normalizes to bare host (strips scheme/path/port)', () => {
+    const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'policy-')), 'runner-policy.json');
+    fs.writeFileSync(
+      tmp,
+      JSON.stringify({
+        allowedDomains: ['https://Coloradotime.com', ' hytek.active.com/user_guides_html ', 'activenetwork.my.salesforce-sites.com/hytekswimming', ''],
+      }),
+    );
+    expect(loadRunnerPolicy(tmp).allowedDomains).toEqual([
+      'coloradotime.com',
+      'hytek.active.com',
+      'activenetwork.my.salesforce-sites.com',
+    ]);
+  });
+
+  test('rejects single-label / wildcard / malformed allowedDomains entries (no bare-TLD bypass)', () => {
+    const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'policy-')), 'runner-policy.json');
+    fs.writeFileSync(
+      tmp,
+      JSON.stringify({ allowedDomains: ['com', 'https://com', '*.com', '.com', 'localhost', 'evil.com@x', 'coloradotime.com.', 'good.example.com'] }),
+    );
+    // Only the well-formed multi-label hosts survive; 'coloradotime.com.' normalizes (trailing dot stripped).
+    expect(loadRunnerPolicy(tmp).allowedDomains).toEqual(['coloradotime.com', 'good.example.com']);
   });
 
   test('parses, lowercases + trims domains, drops empties', () => {

@@ -33,6 +33,17 @@ export interface RunnerPolicy {
    */
   blockedDomains: string[];
   /**
+   * ALLOW-LIST egress. When non-empty, the agent may only fetch URLs whose host
+   * is one of these domains (exact or subdomain) — every other http(s) URL in a
+   * WebFetch or a Bash command (curl/wget/agent-browser) is HARD-blocked at
+   * PreToolUse. Empty = allow-listing OFF (no restriction from this field).
+   * This is the lane-keeping intent layer (a cooperative PreToolUse hook, not a
+   * network perimeter): it steers the agent to a small, vetted set of
+   * authoritative/community sources. `blockedDomains` (deny) takes precedence
+   * over this (allow) when both match. Plain Bash with no URL always passes.
+   */
+  allowedDomains: string[];
+  /**
    * Cap on `pdftoppm` FULL-PAGE render DPI (null = no cap). A full-page render
    * above this is HARD-blocked at PreToolUse; high-DPI is allowed only with an
    * explicit crop region (poppler `-x -y -W -H`). Soft "render at 150" prompts
@@ -67,6 +78,7 @@ export interface RunnerPolicy {
 const DEFAULT_POLICY: RunnerPolicy = {
   stateless: false,
   blockedDomains: [],
+  allowedDomains: [],
   maxFullPageRenderDpi: null,
   maxRendersPerRun: null,
   maxIdenticalCommands: null,
@@ -87,6 +99,17 @@ export function loadRunnerPolicy(policyPath: string = DEFAULT_POLICY_PATH): Runn
       stateless: parsed.stateless === true,
       blockedDomains: Array.isArray(parsed.blockedDomains)
         ? parsed.blockedDomains.filter((d): d is string => typeof d === 'string' && d.trim().length > 0).map((d) => d.trim().toLowerCase())
+        : [],
+      // Normalize to bare host: strip any scheme, path, port, and trailing dot so
+      // a config entry like "activenetwork.my.salesforce-sites.com/hytekswimming"
+      // or "https://coloradotime.com" matches by host. Then REJECT single-label,
+      // wildcard, or malformed entries — a bare TLD like "com" (typo/paste) would
+      // otherwise make endsWith('.'+d) admit every *.com host (silent total bypass).
+      allowedDomains: Array.isArray(parsed.allowedDomains)
+        ? parsed.allowedDomains
+            .filter((d): d is string => typeof d === 'string' && d.trim().length > 0)
+            .map((d) => d.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].replace(/:\d+$/, '').replace(/\.$/, ''))
+            .filter((d) => d.includes('.') && !d.startsWith('.') && !d.includes('*') && !d.includes('@'))
         : [],
       maxFullPageRenderDpi:
         typeof parsed.maxFullPageRenderDpi === 'number' && parsed.maxFullPageRenderDpi > 0
@@ -143,6 +166,35 @@ export function findBlockedDomain(text: string, blockedDomains: string[]): strin
   const haystack = text.toLowerCase();
   for (const domain of blockedDomains) {
     if (haystack.includes(domain)) return domain;
+  }
+  return null;
+}
+
+/**
+ * Pure matcher for ALLOW-LIST egress. Extracts every http(s) URL from `text`
+ * and returns the host of the FIRST one whose host is NOT within any allowed
+ * domain (→ block); null if all URLs are allowed, if there are no URLs (plain
+ * commands pass), or if `allowedDomains` is empty (allow-listing off).
+ *
+ * Host match is EXACT or SUBDOMAIN (`host === domain || host.endsWith('.' +
+ * domain)`), never substring — so an allowed `coloradotime.com` does NOT admit
+ * `coloradotime.com.evil.com` or `evilcoloradotime.com`.
+ *
+ * The authority is normalized to the TRUE host before matching: userinfo is
+ * stripped (`user:tok@evil.com` -> `evil.com`, so credentials can't disguise the
+ * real destination), then the port and a single trailing FQDN dot are removed.
+ */
+export function findDisallowedUrl(text: string, allowedDomains: string[]): string | null {
+  if (!text || allowedDomains.length === 0) return null;
+  const urlRe = /https?:\/\/([^/\s'"<>)]+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = urlRe.exec(text)) !== null) {
+    let host = m[1].toLowerCase();
+    const at = host.lastIndexOf('@');
+    if (at !== -1) host = host.slice(at + 1); // real host is after userinfo
+    host = host.replace(/:\d+$/, '').replace(/\.$/, '');
+    const allowed = allowedDomains.some((d) => host === d || host.endsWith('.' + d));
+    if (!allowed) return host;
   }
   return null;
 }
