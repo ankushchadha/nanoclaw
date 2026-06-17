@@ -10,37 +10,27 @@ These are authored and reviewed but NOT yet wired into a live agent. They are st
 | `runner-policy.json` | `groups/cts/runner-policy.json` | Copy in after creation (host never clobbers this file) |
 | `../../cts-knowledge/*.md` | `groups/cts/knowledge/` | Copy the KB in; the agent reads it as ground truth |
 
-## Tomorrow's runbook (operational, on the live host)
+## Runbook (status + remaining steps)
 
-Grounded in the current install (service `com.nanoclaw-v2-a603825e` running; central DB `data/v2.db`):
-- Existing agent groups: Nano (owner hub, folder `dm-with-ankush`), Researcher, Coach, propertyIQ, agentSQ, Mira.
-- Pattern in use: Nano is the hub; sub-agents (agentSQ, propertyIQ, Mira) are reached via A2A delegation.
-- Two Telegram messaging groups exist (Ankush DM -> Nano is one).
+Grounded in the live install (service `com.nanoclaw-v2-a603825e`; central DB `data/v2.db`).
 
-### Step 0 — GATE: verify Telegram inbound images
-Send a photo to the Telegram bot. Confirm it stages to `/workspace/sessions/<id>/inbox/<msgId>/` (the host `extractAttachmentFiles` only stages when the adapter emits base64 `data`). If it does not stage, fix the Telegram adapter on the channels branch before wiring. This is the must-have and it gates the rest.
+### DONE (2026-06-17)
+- CTSAgent created (agent group `ag-1781691493789-gj9cz8`, folder `ctsagent`); full `CLAUDE.local.md` + `knowledge/` + `runner-policy.json` installed; egress allow-list loads.
+- Brain smoke test via Nano: 2/2 grounded + cited answers; defer discipline + self-correction confirmed.
+- Photo path diagnosed: Telegram inbound images DO stage; the A2A relay drops the file (Nano transcribes to text instead). Real-pixel photos need a DIRECT wire (Option B), not the Nano hub.
+- Channel decision: Option B (dedicated 2nd Telegram bot), shipped in code (commit `b045a36`) — `registerTelegramInstance` + a CTS instance keyed on `TELEGRAM_BOT_TOKEN_CTS`. Inert until that token is set.
+- Realtime fetch of the 5 allow-listed doc domains works today (locked container reaches them via the OneCLI proxy; the hook confines to the 5). No change needed; do NOT label the group "open".
 
-### Step 1 — DECIDE the wiring topology (the photo path depends on it)
-- **Option A (recommended for photos): direct Telegram wire to CTSAgent.** A dedicated Telegram bot/chat wired straight to CTSAgent. Inbound photo crosses ONE gap (the Telegram adapter), no A2A hop. Cleanest for the photo must-have. Cost: set up a second Telegram bot via `/add-telegram` / `/manage-channels`.
-- **Option B (less setup): reach CTSAgent through Nano via A2A.** No new bot; Ankush asks Nano, Nano delegates to CTSAgent (the Mira -> agentSQ pattern). Cost: a Telegram photo would ride the Telegram-adapter gap PLUS the suspected A2A file-forward gap, so photo troubleshooting is at higher risk. Replies route via Nano.
+### REMAINING (operational, on the live host)
 
-Given photos are a must-have, prefer Option A unless Step 0 and an A2A photo-forward test both pass cleanly.
+1. **Create the CTS bot.** @BotFather -> /newbot -> get the token. If volunteers type plain messages in a group, /setprivacy -> Disable so the bot sees all group messages (otherwise it only sees @mentions/replies/commands).
+2. **Configure the token.** Add to `.env`: `TELEGRAM_BOT_TOKEN_CTS=<token>`. Must DIFFER from `TELEGRAM_BOT_TOKEN` (a shared token is rejected to avoid a getUpdates 409).
+3. **Restart the host** so it registers the second instance: `launchctl kickstart -k gui/$(id -u)/com.nanoclaw-v2-a603825e`. Verify the log: `Channel adapter started ... instance=telegram-cts`.
+4. **Create the CTS Telegram group**, add the CTS bot, send one message so the router registers the group (a `messaging_groups` row, channel_type `telegram`, instance `telegram-cts`).
+5. **Wire it to CTSAgent.** `/manage-channels` -> wire that messaging group to CTSAgent (`ag-1781691493789-gj9cz8`) via the sanctioned register path (creates the destination row so replies route back). Set that group's `unknown_sender_policy='public'` so every volunteer you add to the group reaches CTSAgent with no per-person approval (group membership is your access control). Do NOT grant any volunteer a role/membership on Nano or Mira.
+6. **Test the photo path (the must-have):** drop a photo (blank board / error screen) in the CTS group; confirm it stages to CTSAgent's session inbox and the agent reads the actual image and diagnoses from `knowledge/05`.
+7. **Flow-4 (defer + write-back):** ask something the KB does not cover; confirm CTSAgent defers; answer it; confirm it writes the answer to `knowledge/episodic/<meet>.md` and cites it next time.
 
-### Step 2 — Create the agent
-Via the sanctioned `create_agent` path (ask Nano to create it). Name "CTSAgent", instructions = the contents of `CLAUDE.local.md.template`. Do NOT use low-level `ncl groups create` (digit-leading UUID breaks OneCLI). This scaffolds the group folder, seeds `CLAUDE.local.md`, and auto-wires Nano<->CTSAgent destinations.
-
-### Step 3 — Drop in policy + knowledge
-Copy `runner-policy.json` to the new group folder, and `cts-knowledge/*.md` to `groups/<folder>/knowledge/`. Confirm the runner picks up the allow-list: startup log line `Runner policy: egress allow-list of 5 domain(s)`.
-
-### Step 4 — Wire the channel (per Step 1)
-Option A: `/add-telegram` (new bot) then `/manage-channels` to wire that messaging group to CTSAgent via the sanctioned register path (creates the agent_destinations row so replies route correctly). Option B: confirm the Nano<->CTSAgent A2A destinations from Step 2 and test delegation.
-
-### Step 5 — Smoke test the four day-one flows
-1. A setup question (cited from KB).
-2. An ideal-config question (cited).
-3. A blank-board photo troubleshoot (send a photo; agent reads it and diagnoses from `knowledge/05`).
-4. A deliberate defer on an `UNVERIFIED` item -> you answer -> agent writes it back to `knowledge/episodic/`.
-
-## Dependency
-
-`runner-policy.json` uses `allowedDomains`, which requires the allow-list support added to the agent-runner PreToolUse hook (`container/agent-runner/src/policy.ts` + `providers/claude.ts`). That change is committed to the tree and must be picked up by the container (agent-runner src is bind-mounted, so no rebuild needed for src changes; verify the policy loads via the startup log line "Runner policy: egress allow-list of N domain(s)").
+### Notes
+- `runner-policy.json` `allowedDomains` is enforced by the agent-runner PreToolUse hook (committed `fbefa7e`). Agent-runner src is bind-mounted, so no image rebuild — the next container respawn picks it up.
+- The "uncited advice goes in the separate section too" tweak is live in `groups/ctsagent/CLAUDE.local.md`.
