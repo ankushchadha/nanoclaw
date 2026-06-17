@@ -6,7 +6,7 @@ These are authored and reviewed but NOT yet wired into a live agent. They are st
 
 | Staged file | Goes to | How |
 |---|---|---|
-| `CLAUDE.local.md` | `groups/cts/CLAUDE.local.md` | Pass as the `instructions` arg to `create_agent` (it seeds CLAUDE.local.md), or copy in after creation |
+| `CLAUDE.local.md.template` | `groups/cts/CLAUDE.local.md` | Version-controlled source (the live `CLAUDE.local.md` is gitignored). Pass its contents as the `instructions` arg to `create_agent`, or copy in after creation |
 | `runner-policy.json` | `groups/cts/runner-policy.json` | Copy in after creation (host never clobbers this file) |
 | `../../cts-knowledge/*.md` | `groups/cts/knowledge/` | Copy the KB in; the agent reads it as ground truth |
 
@@ -27,7 +27,7 @@ Send a photo to the Telegram bot. Confirm it stages to `/workspace/sessions/<id>
 Given photos are a must-have, prefer Option A unless Step 0 and an A2A photo-forward test both pass cleanly.
 
 ### Step 2 — Create the agent
-Via the sanctioned `create_agent` path (ask Nano to create it). Name "CTSAgent", instructions = the contents of `CLAUDE.local.md`. Do NOT use low-level `ncl groups create` (digit-leading UUID breaks OneCLI). This scaffolds the group folder, seeds `CLAUDE.local.md`, and auto-wires Nano<->CTSAgent destinations.
+Via the sanctioned `create_agent` path (ask Nano to create it). Name "CTSAgent", instructions = the contents of `CLAUDE.local.md.template`. Do NOT use low-level `ncl groups create` (digit-leading UUID breaks OneCLI). This scaffolds the group folder, seeds `CLAUDE.local.md`, and auto-wires Nano<->CTSAgent destinations.
 
 ### Step 3 — Drop in policy + knowledge
 Copy `runner-policy.json` to the new group folder, and `cts-knowledge/*.md` to `groups/<folder>/knowledge/`. Confirm the runner picks up the allow-list: startup log line `Runner policy: egress allow-list of 5 domain(s)`.

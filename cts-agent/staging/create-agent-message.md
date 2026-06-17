@@ -28,7 +28,7 @@ Nano may surface an admin-approval request before creating (confined groups need
 ## Immediately after creation (file copy, on the host)
 
 1. Overwrite the seed with the full personality:
-   `cp cts-agent/staging/CLAUDE.local.md groups/<folder>/CLAUDE.local.md`
+   `cp cts-agent/staging/CLAUDE.local.md.template groups/<folder>/CLAUDE.local.md`
 2. Install the policy:
    `cp cts-agent/staging/runner-policy.json groups/<folder>/runner-policy.json`
 3. Install the knowledge base:
