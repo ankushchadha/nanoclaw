@@ -38,6 +38,9 @@ Do not expect one menu to do both. Times = timer interface. Names/results = Alph
 - Times are available **after the operator does Store/Print (Save and Reset)** on the Gen7. [HIGH]
 - Each retrieval brings pad, backup-button, and split times for the lanes so the operator/referee can reconcile. [HIGH]
 
+### Run-screen hotkeys (verified at the 2026-06-17 meet)
+On the Meet Manager Run screen (Finals/Prelims, "Heat N of M, Event X"): **Get Times F3**, **Race # F2**, **Backup 1 / Backup 2 / Backup 3** (the A/B/C plunger columns), **JD (Judges Decision) = Ctrl-J**, **Unseeded = Ctrl-U**, **Restore Pads = Ctrl-K**, **Adjust = FB**, **Awards = Ctrl-A**, **Rel Names = Ctrl-P**, **Score Sheet = F9**. Results window also exposes **Enter Results by Lane = Ctrl-E**. The top menu bar carries Set-up, Reports, Labels, Preferences, **Interfaces**, **OW Module**, **Meet Mobile**, Help. [verified, IMG 0419/0421]
+
 ## Data-format / baud / null/d0/d4 notes
 
 > PARTIALLY UNVERIFIED. The research confirmed the menu paths, console-type mapping, COM range, and Get Times keys, but did **not** independently verify specific baud rate or a "null / d0 / d4" data-format field for the Gen7 path. For USB the Gen7 needs **no baud configuration** (the virtual COM presents the link). If a legacy CTS-6 serial setup needs an explicit baud/data-format, confirm against the Hy-Tek CTS 6 timing-console help page before asserting values. Do not invent a baud number.

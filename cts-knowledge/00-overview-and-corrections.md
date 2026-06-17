@@ -51,13 +51,13 @@ These came directly out of verification. They matter because the agent must not 
 
 ## RESOLVED (2026-06-16): which "DisplayLink", and the version verdict
 
-There are two different things both called "DisplayLink": (1) the generic DisplayLink USB-graphics driver, and (2) **DisplayLink Plus (DL+)**, the CTS scoreboard application. **On Ankush's rig it is confirmed to be DL+ the CTS app** (title bar read "DisplayLink Plus v4.6.8 (c) Colorado Time Systems", since updated to ~4.7). So its version DOES gate CTS features. See `07-observed-live-config.md` for the full ground-truth capture.
+There are two different things both called "DisplayLink": (1) the generic DisplayLink USB-graphics driver, and (2) **DisplayLink Plus (DL+)**, the CTS scoreboard application. **On Ankush's rig it is confirmed to be DL+ the CTS app**, and the exact version is now confirmed: **DisplayLink Plus v4.7.0** (title bar + splash, verified at the 2026-06-17 meet; edition "CC Express 3.00.009"; core assemblies MainApplicationBase/DisplayLink 4.7.0.0). So its version DOES gate CTS features. See `07-observed-live-config.md` for the full ground-truth capture.
 
-**Version verdict for this stack (Gen7 Swimming V2024.0.1 + DL+ ~4.7):**
+**Version verdict for this stack (Gen7 Swimming V2024.0.1 + DL+ v4.7.0), CONFIRMED 2026-06-17:**
 - **Names: WORKING** (confirmed live on the board). Meets the Gen7 v2023+ / DL+ v4.6.0+ floor.
-- **Team Scores + Complete Event Results (live auto-feed): NOT available.** That needs Gen7 Swimming **v2026** AND DL+ v4.7.0. DL+ now clears its floor, but the **Gen7 Swimming software (V2024.0.1) is below v2026** and is the limiting component. Upgrading DL+ to 4.7 was necessary but not sufficient; the Gen7 software would need the v2026 release.
+- **Team Scores + Complete Event Results (live auto-feed): NOT available.** That needs Gen7 Swimming **v2026** AND DL+ v4.7.0. **DL+ now meets its v4.7.0 floor exactly**, so the scoreboard side is ready, but the **Gen7 Swimming software (V2024.0.1) is below v2026** and is the sole limiting component. Upgrading the Gen7 software to the v2026 line is the only remaining step for those live features.
 
-Still to confirm: the exact post-update DL+ version string (must be >= 4.7.0) and whether names currently flow over serial COM3 or the UDP Alpha-Scoreboard path.
+**Names-path nuance (from the meet):** Gen7 setting **UDP Scoreboard Names = "This Computer"** (so names ride UDP from the Gen7 app), while DL+ reads the timer feed on serial **COM3** and can request heats via the COM port (DL+ "Meet Management via COM Port", event 999). So the path is a mix: timer data on COM3, names over UDP. See `07` and `03`.
 
 ## What was NOT verified (do not assert as fact)
 

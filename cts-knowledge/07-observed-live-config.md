@@ -93,7 +93,30 @@ This (plus the Course = 25y/SCY status) is where pool course, distances, and the
 
 Bottom line: updating DisplayLink Plus to 4.7 was necessary but not sufficient for live Team Scores / Complete Event Results. The **Gen7 Swimming software (currently V2024.0.1) is the limiting component** and would need the v2026 release for those live features. Names work today regardless.
 
-## Still to read off the screen
+## Meet-day verified config (2026-06-17, meet "DEL@HOX2026")
 
-- The **exact current DL+ version** after the update (title bar string), to confirm it is >= 4.7.0.
-- Whether the Gen7 Swimming **scoreboard output** is on serial COM3 (to literally confirm the COM3<->COM3 match end to end) or whether names are flowing over the UDP/Alpha-Scoreboard path instead.
+Captured live from the operator laptops at a real meet. CONFIRMED the open items above and added the Meet Manager + Gen7 settings detail. (Swimmer rosters were visible but are intentionally NOT recorded here: minors' PII, irrelevant to timing.)
+
+### DisplayLink Plus (DL+): exact version CONFIRMED
+- **DisplayLink Plus v4.7.0** (title bar + splash; edition "CC Express 3.00.009"; core assemblies MainApplicationBase / DisplayLink = 4.7.0.0). Resolves the "exact DL+ version" open item.
+- Comm Ports (Settings > CTS Aquatic Sports): **CTS Timer #1 = COM3**, **CTS Timer #2 = COM1**, protocol "Colorado"; Timer #3/#4 and Meet Management disabled. (Unchanged from before; now re-confirmed.)
+
+### Meet Manager serial config (the other end of the COM3 link), CONFIRMED
+- Hy-Tek Meet Manager, licensed to "Valley Swim Association". Console type = Colorado Time Systems 6.
+- **Set-up > "Select Serial Port for CTS 6":** CTS6 Timer **Pool 1 = COM3**; Timer = 0; Scoreboard = 0 (there are TWO scoreboard fields, both 0); Open Water Button Timer = 0. ("Enter 0 to close serial port.")
+- On opening the port, MM reports: **"Communication - Pool 1 - COM3 ... CTS 6000 Version Gen7 v2024.0.1.0 ... Communications Passed."** So the COM3 match is verified end to end: Gen7 -> DL+ CTS Timer #1 (COM3) and Gen7 -> Meet Manager CTS6 Pool 1 (COM3).
+
+### Why COM3: the physical serial topology (Device Manager)
+- On the DL+/MM laptop, Ports (COM & LPT) shows: **COM1 = Communications Port (native)**, **COM2 + COM3 = "PCIe to High Speed Serial Port"** (a multi-port PCIe serial card). An **FTDI (FTD2XX) USB-serial** driver is also installed. So COM3 is a PCIe serial-card port, which is why both DL+ Timer #1 and MM Pool 1 use COM3, and DL+ Timer #2 uses native COM1.
+
+### Gen7 Swimming settings (this rig's actual config)
+- **General:** Default Governing Body = Other; **UDP Scoreboard Names = "This Computer"** (names ride UDP); Auto Connect = No; Flash Case Lights During Races = No; **Enable Meet Management File Export = Yes**.
+- **Timing:** Near End = **Pad**, Far End = **Pad** (both ends pad); **Timing Resolution = Hundredths** (0.01s); **Start Reaction Window = 2 sec**; Near End Pad Delay = 12, Far End Pad Delay = 8; **Relay Judging Interval = 1.00 sec**; Backup Comparison Interval ~0.30 sec (the automatic pad-vs-backup compare window); Backstroke Start Reaction = Disabled; Missed Pad Warnings = Yes; Allow Per-Lane Distance = No.
+- **Scoreboard:** Wireless = No; Show Reaction Times = Yes; Lane Module Order = Lane Order; Clear Lanes on Next Race; Keep Finish Times if Lane Turned Off in Reset.
+- **Update:** "All device firmware is up to date for this version of Gen7 Swimming." (Healthy.)
+
+### Network (this session)
+- Gen7 status bar: **"Timer: Connected [169.254.180.17]"**. APIPA link-local, and it CHANGES per session (earlier captures showed 169.254.9.61 and 169.254.206.182). So do not hard-code an IP; read the current one off the status bar / Available Timers when entering it manually. Timer serial remains 202214306.
+
+### Meet outcome (these are live-meet photos)
+- The timing system ran **clean**: Communications Passed, Gen7 "READY FOR START", timer Connected, firmware current, finals times recorded, scoreboard names staged ("Save and Send"). No error dialogs, no blank/garbled screens, no missed-pad/DQ alerts in any frame.
