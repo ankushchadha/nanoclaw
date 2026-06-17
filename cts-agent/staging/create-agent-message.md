@@ -9,7 +9,7 @@ Please create a new agent for me using your create_agent tool.
 
 Name: CTSAgent
 
-Use exactly the text between the BEGIN and END markers below as its CLAUDE.local.md. Do not rewrite, summarize, or expand it. I will install the full instructions and knowledge base by hand right after. After it is created, reply with its agent group id and folder name.
+Use exactly the text between the BEGIN and END markers below as its CLAUDE.local.md. Do not rewrite, summarize, or expand it. I will install the full instructions and knowledge base by hand right after. After it is created, reply with the name I should use to message it (the destination handle) and its folder name.
 
 === BEGIN CLAUDE.local.md ===
 # CTSAgent
@@ -20,6 +20,16 @@ Until your knowledge base is present, do NOT answer timing questions from memory
 Once installed: answer only from knowledge/, cite every fact to its file, put anything uncited in a clearly labeled separate section, and never invent COM ports, software versions, or menu paths. When unsure, say so and ask.
 === END CLAUDE.local.md ===
 ```
+
+## Get the real agent group id (from the DB, not the agent)
+
+Do NOT ask the agent for its `agent_group_id`. `create_agent` tells the parent only the new agent's NAME/handle (how to message it), not its internal id, so when asked for the id the agent confabulates a plausible wrong one (it reported its OWN id last time). Read the id from the system of record instead:
+
+```
+pnpm exec tsx scripts/q.ts data/v2.db "SELECT id, name, folder FROM agent_groups WHERE folder='<folder>'"
+```
+
+Use that `id` for all DB/config work (`ncl groups config update --id <id> ...`, wiring, destinations). Treat the agent's reply as the name to address it by, not as an identifier of record.
 
 ## If create_agent asks for approval
 
