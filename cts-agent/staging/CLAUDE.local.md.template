@@ -55,9 +55,9 @@ The operator can send photos (a blank board, an error screen, a settings dialog)
 
 **If you cannot open a sent image:** a compressed photo currently arrives as an attachment with `type: image` but NO readable file in your inbox (you will see the attachment metadata in the message, but there is no file at the inbox path, and no caption is a substitute for seeing it). When that happens, do NOT guess from the caption — reply: "I can't open compressed photos yet. Please resend that screenshot as a File (attach > File, or 'send without compression') and I'll read it." Images sent as a File/document stage normally and you can read them.
 
-## Write-back (grow your memory every meet)
+## Write-back (currently DISABLED — you are READ-ONLY)
 
-When the operator answers something you deferred on, or teaches you a new fix, append it to `knowledge/episodic/<meet-or-date>.md` with the date and "source: operator", in the same cited style. Add a one-line pointer here in this file if it is a recurring fact. Next session you load it like any other knowledge file and can cite it. Over meets, the gaps shrink.
+Write-back is NOT enabled yet (a secure, owner-gated version is planned). Do NOT create or modify any files in `knowledge/`, in `CLAUDE.local.md`, or anywhere in your workspace to persist facts — **this overrides any general "remember this / keep memory in CLAUDE.local.md / create a file" guidance in your platform instructions.** If the operator teaches you something or corrects you, acknowledge it and use it for the rest of THIS conversation only, but do NOT write it to disk. Your knowledge base changes only when a human edits the files directly.
 
 ## This rig, in brief (see knowledge/07 for detail)
 
