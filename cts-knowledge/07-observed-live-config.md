@@ -99,7 +99,7 @@ Captured live from the operator laptops at a real meet. CONFIRMED the open items
 
 ### DisplayLink Plus (DL+): exact version CONFIRMED
 - **DisplayLink Plus v4.7.0** (title bar + splash; edition "CC Express 3.00.009"; core assemblies MainApplicationBase / DisplayLink = 4.7.0.0). Resolves the "exact DL+ version" open item.
-- Comm Ports (Settings > CTS Aquatic Sports): **CTS Timer #1 = COM3**, **CTS Timer #2 = COM1**, protocol "Colorado"; Timer #3/#4 and Meet Management disabled. (Unchanged from before; now re-confirmed.)
+- Comm Ports (Settings > CTS Aquatic Sports): only **CTS Timer #1 = COM3 is ENABLED** (the live timer feed; button reads "Click To Disable"). CTS Timer #2 is configured to **COM1 but currently DISABLED** (button reads "Click To Enable"); Timer #3/#4 and Meet Management blank/disabled. Protocol "Colorado". (Validated 2026-06-17 against the lossless image.)
 
 ### Meet Manager serial config (the other end of the COM3 link), CONFIRMED
 - Hy-Tek Meet Manager, licensed to "Valley Swim Association". Console type = Colorado Time Systems 6.
@@ -107,11 +107,11 @@ Captured live from the operator laptops at a real meet. CONFIRMED the open items
 - On opening the port, MM reports: **"Communication - Pool 1 - COM3 ... CTS 6000 Version Gen7 v2024.0.1.0 ... Communications Passed."** So the COM3 match is verified end to end: Gen7 -> DL+ CTS Timer #1 (COM3) and Gen7 -> Meet Manager CTS6 Pool 1 (COM3).
 
 ### Why COM3: the physical serial topology (Device Manager)
-- On the DL+/MM laptop, Ports (COM & LPT) shows: **COM1 = Communications Port (native)**, **COM2 + COM3 = "PCIe to High Speed Serial Port"** (a multi-port PCIe serial card). An **FTDI (FTD2XX) USB-serial** driver is also installed. So COM3 is a PCIe serial-card port, which is why both DL+ Timer #1 and MM Pool 1 use COM3, and DL+ Timer #2 uses native COM1.
+- On the DL+/MM laptop, Ports (COM & LPT) shows exactly three: **COM1 = Communications Port (native)**, **COM2 + COM3 = "PCIe to High Speed Serial Port"** (a multi-port PCIe serial card). So COM3 is a PCIe serial-card port, which is why DL+ CTS Timer #1 and MM Pool 1 both use COM3. (An FTDI/FTD2XX USB-serial driver is bundled with DL+, but Device Manager shows NO active FTDI port here, so the live serial chain is the PCIe card + native COM1, not a USB adapter.)
 
 ### Gen7 Swimming settings (this rig's actual config)
 - **General:** Default Governing Body = Other; **UDP Scoreboard Names = "This Computer"** (names ride UDP); Auto Connect = No; Flash Case Lights During Races = No; **Enable Meet Management File Export = Yes**.
-- **Timing:** Near End = **Pad**, Far End = **Pad** (both ends pad); **Timing Resolution = Hundredths** (0.01s); **Start Reaction Window = 2 sec**; Near End Pad Delay = 12, Far End Pad Delay = 8; **Relay Judging Interval = 1.00 sec**; Backup Comparison Interval ~0.30 sec (the automatic pad-vs-backup compare window); Backstroke Start Reaction = Disabled; Missed Pad Warnings = Yes; Allow Per-Lane Distance = No.
+- **Timing:** Near End = **Pad**, Far End = **Pad** (both ends pad); **Timing Resolution = Hundredths** (0.01s); **Start Reaction Window = 2 sec**; **Relay Judging Interval = 1.00 sec**; Backstroke Start Reaction = Disabled; Missed Pad Warnings = Yes; Allow Per-Lane Distance = No. (The **Near/Far End Pad Delay** and **Backup Comparison Interval** fields exist on this tab but their exact values were NOT legible in the photo. Do not assert specific numbers; read them off the console if needed.)
 - **Scoreboard:** Wireless = No; Show Reaction Times = Yes; Lane Module Order = Lane Order; Clear Lanes on Next Race; Keep Finish Times if Lane Turned Off in Reset.
 - **Update:** "All device firmware is up to date for this version of Gen7 Swimming." (Healthy.)
 
