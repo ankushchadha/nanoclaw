@@ -4,12 +4,11 @@
 
 > **This rig (verified 2026-06-17):** Hy-Tek's MEET MANAGER for Swimming, **Release 8.0Gf, Pro Multi-User**, Licensed To "Valley Swim Association". Console type set to **Colorado Time Systems 6**, serial **CTS6 Timer Pool 1 = COM3** (reports "Communications Passed"). **Meet Mobile** is a Hy-Tek menu/feature (results to the Active "Meet Mobile" app) with no separate connection panel observed on this rig; treat its config as not-yet-documented. **Topology:** Gen7 (CTS) <-> Meet Manager over the **MM (Meet Management) serial port = COM3** for event/time data; swimmer **names go to the Gen7 and the scoreboard via a USB drive** (manual), not a live link.
 
-## Console type selection
+## Console type selection (Set-up > Timing Console Interface / "Select Your Timing System")
 
-- **Set-up > Timing Console Interface.**
-- Select **Colorado Time Systems 6** or **Colorado Time Systems 5**. **No native Gen7 entry exists**; the Gen7 is driven through the CTS 5/6 mapping. [HIGH]
-- Officially supported CTS consoles in Meet Manager: **CTS 4, CTS 5, CTS 6, CTS Dolphin**. **CTS 5 and 6 support event schedule download** (pushing names/events to the console). [HIGH, swmm7]
-- Caveat: the CTS-5/6 designation is a **legacy mapping**; a future Meet Manager could add a native Gen7 option, so do not hard-code the assumption that "Gen7 == pick CTS 6 forever."
+- **CORRECTED 2026-06-17 (verified on MM 8.0Gf):** the timing-system list has a dedicated **"Colorado Time Systems 6 and Gen 7"** entry (the top CTS radio). **Select that for the Gen7.** The earlier research note ("no native Gen7 entry, use CTS 6") was from older Meet Manager versions; 8.0Gf added the combined CTS-6-and-Gen-7 option. Once selected, the serial sub-dialog still reads "Select Serial Port for CTS 6". Other CTS entries: Colorado Time Systems 5 / 4 / Dolphin / Dolphin with Splits.
+- **CTS 5/6/Gen7 support event schedule download** (pushing names/events to the console). [HIGH, swmm7]
+- **Connection Method** (same dialog): **Serial Port or USB to Serial** vs **UDP Ethernet**. The **UDP Ethernet** option is labeled **"OmniSport 2000 Only"** and does NOT apply to the CTS/Gen7. For the Gen7, use **Serial Port** (this rig: COM3). So this dialog is NOT a path to UDP scoreboard names; that is a separate mechanism (see `02` "Enabling live UDP names").
 
 ## Two Meet Manager menus, two jobs
 
