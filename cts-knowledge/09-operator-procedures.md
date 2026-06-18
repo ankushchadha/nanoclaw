@@ -40,6 +40,23 @@ Putting the above together answers the earlier open question on how pad and back
 - **Finish Arm the lane** forces a lane to finish when touches are miscounted or a plunger misfired.
 - The operator notes anomalies on paper (see codes below) so results can be reconciled afterward.
 
+### What the printed results sheet shows (verified 2026-06-17, IMG_0455)
+The Gen7 prints a per-race results sheet (e.g. "Girls' 9-10 50 Yard Freestyle Finals, Event/Heat/Race #, Start Time"), with a top "By Lane" and "By Place" summary, then a per-lane breakdown carrying ALL the raw inputs and the reconciliation:
+
+| Row | Meaning |
+|-----|---------|
+| **Off. Time** | The OFFICIAL time used for that lane |
+| **Pad Time** | The touchpad time (blank if the pad did not register) |
+| **Button A / B / C** | The three plunger times |
+| **Backup** | The backup time computed from the buttons |
+| **P-B Diff** | Pad minus Backup (the discrepancy check) |
+| **Start Reac** | Start reaction time |
+
+How the **Official Time** is chosen, from the real data:
+- When the **pad registered** and agrees with the buttons, **Official = Pad** (e.g. Lane 6: Pad 30.21, Buttons 30.36/30.36, Backup 30.36, P-B Diff -0.15, Official 30.21).
+- When the **pad is missing** (no Pad Time), the system **falls back to the Backup** (button-derived) time (e.g. Lane 1: no Pad Time, Buttons 50.18/50.41, Backup 50.29, Official 50.29).
+- **P-B Diff** is the pad-vs-backup gap; it is checked against the **Backup Comparison Interval** (~0.30 sec on this rig, see `07`). Diffs within that window are accepted silently; a large diff flags the lane for the referee. So the automatic compare tolerance AND the operator's manual review (above) both exist: the console computes Pad/Backup/Diff and picks Official; the operator overrides via Accept-backup / Add-Minus-touch / Finish-Arm when a lane is wrong. The printed sheet is the audit trail.
+
 ## CTS paperwork codes
 
 In addition to writing the **race number**, the operator notes anything about the race using these codes:
