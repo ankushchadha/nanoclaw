@@ -47,6 +47,14 @@ Two distinct "live names" mechanisms exist; clarify which one applies before act
 
 **Before buying any upgrade:** confirm with CTS exactly what THIS stack needs, since it already meets the version floors. You may be paying for a software upgrade when the gap is an RS-485 cable or a Meet Manager license. (The Gen7 **v2026** upgrade IS required for Team Scores / Complete Event Results, but plain **names do not** need it.) This is a lead to verify with CTS, not a guarantee.
 
+## MM port vs the scoreboard-names link (do NOT conflate)
+
+A common and costly mix-up. The **"MM port"** (Meet Management port on the Gen7) is the **Gen7 <-> Meet Manager** serial link (this rig: COM3, "Communications Passed"). It carries the event sequence and times between the timer and the meet-management software. **It is NOT the scoreboard-names link.**
+
+Getting swimmer NAMES onto the scoreboard live is a **separate connection: Gen7 -> DisplayLink Plus** (the scoreboard PC), which the docs say needs **RS-485** (a different electrical interface than the MM serial port). So "I already have the MM port" does NOT mean names can ride it; the names path is a different cable to the DL+ computer. The likely missing piece for live names is that RS-485 link, not a software upgrade and not the MM port.
+
+**CAVEAT (verify before wiring/buying):** this rig's exact serial topology is not fully traced from photos (COM3 appears in BOTH Meet Manager AND DL+, which implies two separate cables/ports on separate machines). Trace the actual cabling (Gen7 MM port vs Gen7 scoreboard output; what reaches the DL+ PC) and confirm the required interface with CTS before acting. This is a lead, not a guarantee.
+
 ## The DisplayLink-naming caveat (resolve before trusting v2026 claims)
 
 "DisplayLink 4.7" is ambiguous:
