@@ -37,6 +37,16 @@
 
 - **User's stack (Gen7 Swimming 2024.0.1 + DisplayLink 4.7):** clears the **names** floor. Does **not** meet the **v2026** Gen7 pairing required for Team Scores / Complete Event Results, so expect names to work but full live results/scores to be unavailable until the Gen7 software is on the v2026 line. Verify installed versions on the actual machines.
 
+## Enabling live UDP names on THIS rig (the operator's upgrade question)
+
+The plan is to move swimmer names off the USB stick onto a live port. Per the floors above, **the software is already new enough for names**: Gen7 v2024.0.1 clears the v2023+ floor and DL+ v4.7.0 clears the v4.6.0+ floor. So a **software upgrade is likely NOT what unlocks live names** here. The documented requirement that is probably missing is the **RS-485 link** between the Gen7 and the DL+ computer: the current serial run carries TIMES on COM3, but **names require RS-485 to DL+ (RS-232 / standard serial will not carry names)**. So the likely real blocker is RS-485 wiring/adapters, not a purchase.
+
+Two distinct "live names" mechanisms exist; clarify which one applies before acting:
+1. **Gen7 -> DL+ Athlete Name Integration over RS-485** (F1034 App C): the direct scoreboard-name path; needs RS-485 + the version floors above (already met).
+2. **Meet Manager Alpha Scoreboard UDP** (port 60287): a Meet-Manager-driven generic-scoreboard path that needs the **Alpha Scoreboard license** in Meet Manager.
+
+**Before buying any upgrade:** confirm with CTS exactly what THIS stack needs, since it already meets the version floors. You may be paying for a software upgrade when the gap is an RS-485 cable or a Meet Manager license. (The Gen7 **v2026** upgrade IS required for Team Scores / Complete Event Results, but plain **names do not** need it.) This is a lead to verify with CTS, not a guarantee.
+
 ## The DisplayLink-naming caveat (resolve before trusting v2026 claims)
 
 "DisplayLink 4.7" is ambiguous:

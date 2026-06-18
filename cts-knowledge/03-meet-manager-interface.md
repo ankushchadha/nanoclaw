@@ -2,6 +2,8 @@
 
 > Consolidated Meet Manager (SWMM 6/7/8) settings for driving a Gen7. Cross-references Path A (serial times) and Path B (UDP names).
 
+> **This rig (verified 2026-06-17):** Hy-Tek's MEET MANAGER for Swimming, **Release 8.0Gf, Pro Multi-User**, Licensed To "Valley Swim Association". Console type set to **Colorado Time Systems 6**, serial **CTS6 Timer Pool 1 = COM3** (reports "Communications Passed"). **Meet Mobile** is a Hy-Tek menu/feature (results to the Active "Meet Mobile" app) with no separate connection panel observed on this rig; treat its config as not-yet-documented. **Topology:** Gen7 (CTS) <-> Meet Manager over the **MM (Meet Management) serial port = COM3** for event/time data; swimmer **names go to the Gen7 and the scoreboard via a USB drive** (manual), not a live link.
+
 ## Console type selection
 
 - **Set-up > Timing Console Interface.**
