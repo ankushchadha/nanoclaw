@@ -57,7 +57,7 @@ There are two different things both called "DisplayLink": (1) the generic Displa
 - **Names: WORKING** (confirmed live on the board). Meets the Gen7 v2023+ / DL+ v4.6.0+ floor.
 - **Team Scores + Complete Event Results (live auto-feed): NOT available.** That needs Gen7 Swimming **v2026** AND DL+ v4.7.0. **DL+ now meets its v4.7.0 floor exactly**, so the scoreboard side is ready, but the **Gen7 Swimming software (V2024.0.1) is below v2026** and is the sole limiting component. Upgrading the Gen7 software to the v2026 line is the only remaining step for those live features.
 
-**Names-path nuance (from the meet):** Gen7 setting **UDP Scoreboard Names = "This Computer"** (so names ride UDP from the Gen7 app), while DL+ reads the timer feed on serial **COM3** and can request heats via the COM port (DL+ "Meet Management via COM Port", event 999). So the path is a mix: timer data on COM3, names over UDP. See `07` and `03`.
+**Names-path reality (operator-confirmed 2026-06-17): names currently move via a USB STICK, not live.** The workflow: export the start list / names to a USB drive, then load them into DL+ on the scoreboard PC. The Gen7 setting "UDP Scoreboard Names = This Computer" exists, but UDP names are NOT the active transport on this rig. So the split is: **times** flow LIVE over serial **COM3** (Gen7 -> DL+ CTS Timer #1, and Gen7 -> Meet Manager CTS6 Pool 1); **names** are the manual USB download/upload. Eliminating that USB step (moving names onto the live UDP/RS-485 path, which needs RS-485 to DL+ plus Gen7 v2023+ / DL+ v4.6+) is the standing improvement goal. See `02` for the UDP-names requirements and `07` for the verified config.
 
 ## What was NOT verified (do not assert as fact)
 

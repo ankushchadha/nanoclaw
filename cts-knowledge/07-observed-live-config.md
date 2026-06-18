@@ -110,13 +110,22 @@ Captured live from the operator laptops at a real meet. CONFIRMED the open items
 - On the DL+/MM laptop, Ports (COM & LPT) shows exactly three: **COM1 = Communications Port (native)**, **COM2 + COM3 = "PCIe to High Speed Serial Port"** (a multi-port PCIe serial card). So COM3 is a PCIe serial-card port, which is why DL+ CTS Timer #1 and MM Pool 1 both use COM3. (An FTDI/FTD2XX USB-serial driver is bundled with DL+, but Device Manager shows NO active FTDI port here, so the live serial chain is the PCIe card + native COM1, not a USB adapter.)
 
 ### Gen7 Swimming settings (this rig's actual config)
-- **General:** Default Governing Body = Other; **UDP Scoreboard Names = "This Computer"** (names ride UDP); Auto Connect = No; Flash Case Lights During Races = No; **Enable Meet Management File Export = Yes**.
-- **Timing:** Near End = **Pad**, Far End = **Pad** (both ends pad); **Timing Resolution = Hundredths** (0.01s); **Start Reaction Window = 2 sec**; **Relay Judging Interval = 1.00 sec**; Backstroke Start Reaction = Disabled; Missed Pad Warnings = Yes; Allow Per-Lane Distance = No. (The **Near/Far End Pad Delay** and **Backup Comparison Interval** fields exist on this tab but their exact values were NOT legible in the photo. Do not assert specific numbers; read them off the console if needed.)
+- **General:** Default Governing Body = Other; **UDP Scoreboard Names = "This Computer"** (set, but UDP is NOT the active names transport here, see "Names path" below); Auto Connect = No; Flash Case Lights During Races = No; **Enable Meet Management File Export = Yes** (this export feeds the USB-stick names workflow).
+- **Timing:** Near End = **Pads**, Far End = **Pads** (both ends pad); **Timing Resolution = Hundredths** (0.01s); **Start Reaction Window = 2 sec**; **Relay Judging Interval = 1.00 sec**; **Backup Comparison Interval = 0.30 sec** (the automatic pad-vs-backup compare window); **Near End Pad Delay = 12, Far End Pad Delay = 8** (read off a clear close-up; the UI labels them "sec", but 12 sec is implausibly long for a pad delay, so the unit/decimal is uncertain, treat as approximate and verify on the console); Backstroke Start Reaction = Disabled; Missed Pad Warnings = Yes; Allow Per-Lane Distance = No. The Even/Odd Length Count fields select which end finishes for even- vs odd-length races.
 - **Scoreboard:** Wireless = No; Show Reaction Times = Yes; Lane Module Order = Lane Order; Clear Lanes on Next Race; Keep Finish Times if Lane Turned Off in Reset.
 - **Update:** "All device firmware is up to date for this version of Gen7 Swimming." (Healthy.)
 
 ### Network (this session)
 - Gen7 status bar: **"Timer: Connected [169.254.180.17]"**. APIPA link-local, and it CHANGES per session (earlier captures showed 169.254.9.61 and 169.254.206.182). So do not hard-code an IP; read the current one off the status bar / Available Timers when entering it manually. Timer serial remains 202214306.
+
+### Names path (operator-confirmed)
+- Swimmer NAMES currently move to the scoreboard via a **USB STICK** (manual download/upload), NOT a live UDP or serial feed. Times come live over COM3; names are loaded into DL+ from the USB drive. The Gen7 "UDP Scoreboard Names = This Computer" + "Meet Management File Export = Yes" settings support the export-to-file workflow that the USB carries. **Eliminating the USB step (live UDP names) is the standing improvement goal** and requires the RS-485 + Gen7 v2023+/DL+ v4.6+ path in `02`. So when troubleshooting "names wrong/old on the board", suspect the USB load step first, not a live link.
+
+### Physical scoreboard (outdoor LED board)
+- Confirmed layout from a board photo: columns **LANE | PLACE | NAME | TEAM | TIME | SPLIT**, with **EVENT** and **HEAT** shown at top and 10 lanes (1-10). On the idle/test event (99) the board shows the headers and lane numbers with no swimmer rows. (No DIP/module-address detail was captured; for a blank/garbled board see the System-6 vendor rows in `05`.)
+
+### Gen7 run-screen lane controls (confirmed)
+- Per lane: the touchpad + three plungers **A / B / C**, a **0/2** touch counter, and **S.ARM (Start Arm) / F.ARM (Finish Arm)** buttons, plus **S.ARM ALL / F.ARM ALL** to arm all lanes and per-lane **SCBD (scoreboard) up/down** toggles. Matches the "1 pad + 3 plungers per lane" hardware and the finish-arm procedure in `09`.
 
 ### Meet outcome (these are live-meet photos)
 - The timing system ran **clean**: Communications Passed, Gen7 "READY FOR START", timer Connected, firmware current, finals times recorded, scoreboard names staged ("Save and Send"). No error dialogs, no blank/garbled screens, no missed-pad/DQ alerts in any frame.

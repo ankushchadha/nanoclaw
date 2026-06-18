@@ -2,6 +2,8 @@
 
 > This is the path that eliminates the USB-drive download/upload workflow. It pushes start lists, swimmer names, and event sequence live. It uses a fixed UDP port and IP addressing, NOT a matched serial COM port.
 
+> **Current state on this rig (2026-06-17):** UDP names are NOT yet active here. Names still move via a **USB stick** (the manual download/upload). Times flow live over serial COM3; only names are manual. Switching names to this UDP/RS-485 path (and retiring the USB step) is the standing goal. See `07` for the confirmed current setup.
+
 ## The headline facts
 
 - **Fixed UDP port: `60287`.** This is the value that goes in the Remote Scoreboard Port box. [HIGH, F1034 pp. 84-85]
