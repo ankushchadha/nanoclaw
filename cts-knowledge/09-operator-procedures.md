@@ -57,6 +57,18 @@ How the **Official Time** is chosen, from the real data:
 - When the **pad is missing** (no Pad Time), the system **falls back to the Backup** (button-derived) time (e.g. Lane 1: no Pad Time, Buttons 50.18/50.41, Backup 50.29, Official 50.29).
 - **P-B Diff** is the pad-vs-backup gap; it is checked against the **Backup Comparison Interval** (~0.30 sec on this rig, see `07`). Diffs within that window are accepted silently; a large diff flags the lane for the referee. So the automatic compare tolerance AND the operator's manual review (above) both exist: the console computes Pad/Backup/Diff and picks Official; the operator overrides via Accept-backup / Add-Minus-touch / Finish-Arm when a lane is wrong. The printed sheet is the audit trail.
 
+## When a lane has no electronic time (the missed-pad scramble)
+
+The most common on-deck timing failure, and exactly what a new operator panics on. Real example (2026-06-17 meet, happened twice): the pad time was missing (swimmer touched too lightly, or the pad did not trip) AND the backup plunger was not pressed, so there was NO electronic time at all and the lane had to use a **manual time**.
+
+What to do, in order:
+1. **Check for a backup plunger time first.** If any timer pressed a plunger (A/B/C), the console already has a Backup time and the Official time falls back to it automatically (see reconciliation above). No manual time needed. This is the whole reason the A/B/C plungers exist.
+2. **Pad missed but a plunger time exists, and the lane did not auto-finish** (touch miscount): use **Add a touch** and/or **Finish Arm the lane** so the plunger time becomes the finish. A NEW operator commonly misses this step (the "add touch" button was not pressed at this meet), and falls back to manual time when an electronic time was actually recoverable.
+3. **Both pad AND all plungers missing** (everyone forgot the plunger): there is no electronic time to recover. Use a **manual time** from the human backup watches, mark the lane **"M"** on the paperwork, and enter it in Meet Manager afterward.
+4. **Under time pressure (next heat about to start):** do not hold up the meet. **Finish Arm the lane, then Save and Reset** to advance, and rely on the paperwork "M" note to fix the time later. (This is exactly what the operator did at the meet.)
+
+**Prevention (the real fix):** the backup timers must PRESS THE PLUNGER every race, every lane. A pressed plunger turns a missed pad into a silent automatic backup time. Missed pad + missed plunger is the ONLY case that forces a manual time. Brief the timers; and for a new console operator the reflex is: pad missing -> look for the plunger/backup time (and Add-touch / Finish-Arm) BEFORE reaching for a manual time.
+
 ## CTS paperwork codes
 
 In addition to writing the **race number**, the operator notes anything about the race using these codes:
