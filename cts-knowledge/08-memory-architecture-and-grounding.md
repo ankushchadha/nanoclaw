@@ -27,6 +27,20 @@ Deep-research did two jobs, not one:
 
 It also attached **provenance + confidence tags**. Those are not decoration. They are what let a human or the agent tell a verified fact from a lead, and what keeps the grounding honest as docs age. Grounding shifts the trust problem from "the model's fuzzy memory" to "the quality of the curated context." Strictly better (auditable, updatable), but it introduces a new failure mode: **stale or wrong context cited confidently**, which reads as more authoritative than vagueness. Provenance is the defense.
 
+## KB-building verification (how facts get INTO this KB — the build-time rule)
+
+The grounding guarantees below are only as good as the facts ingested. The failure mode to design out: a **fetch-then-summarize tool puts a model between you and the source**, and that summary paraphrases, blends in the model's own training knowledge, or **misattributes** a real value to the wrong claim. This actually happened (2026-06-19): a `WebFetch` summary presented the real Gen7 build "v2026.0.3" as the Team-Scores *requirement floor* (the page stated only DL+ v4.7.0), and a separate summary made the genuine F1034 "Gen7 v2026" floor look unverified. Both were resolved only by going to raw source. Lesson: **a model summary is the wrong instrument for confirming a discrete fact.**
+
+**The rule (mandatory for any value added to this KB):**
+- **Discrete facts** — versions, ports, part numbers, menu paths, hotkeys, thresholds — must be confirmed by **raw-fetch + deterministic extraction + literal match**, never by a model summary:
+  - `curl`/download the raw source → `pdftotext` (PDFs) or strip tags (HTML) → **`grep` for the literal token** (a string is in the bytes or it isn't) → record a **verbatim quote + locator** (page/line/section).
+  - JS- or Cloudflare-gated pages: render with a **headless browser (Playwright)** first, then grep the rendered text.
+- **Prose / interpretation** — what something means, how a procedure flows — a model reading is fine. Use a model to *interpret*, **never to *confirm* a discrete value**.
+- **WebFetch (and any summarizing fetch) is a lead-finder, not ground truth.** It tells you where to look; the verbatim grep is what makes the claim citeable.
+- Every `[HIGH]` tag should be backed by a literal source quote, not a paraphrase. No verbatim quote → it is at best a lead (`UNVERIFIED`), not a fact.
+
+This is the **build-time twin of the citation guardrail below**: the runtime guardrail checks that the agent's answer is supported by the KB; this rule checks that the KB is supported by the source. Same principle — verify the claim against the actual source, never trust an intermediary.
+
 ## Citation guardrail (show your source)
 
 Two halves. The positive half is easy; the teeth are on the negative half.
