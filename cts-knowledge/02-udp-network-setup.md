@@ -70,7 +70,7 @@ Check the installed component before asserting feature availability. See open qu
 
 - The Gen7 timer supports an **Ethernet connection** to an interface computer (laptop/PC) in addition to scoreboard connections.
 - The **timer and control laptops must share the same physical network** (laptops may be on Wi-Fi, the timer on Ethernet) to enable **auto-discovery**: laptop software finds the timer automatically. If not found, **enter the IP manually**. [HIGH, F1066 + ManualsLib]
-- The named Ethernet timer-to-computer cable is the **R-SJ-xx**.
+- An **Ethernet cable** connects the timer directly to the interface computer. (A prior note named this cable "R-SJ-xx" citing F1066; re-audit 2026-06-19 found **NO such part number in F1034 or F1066** — both only say "Ethernet cable." So **"R-SJ-xx" is UNVERIFIED — do not assert it**; it cannot be sourced to F1034/F1066.)
 - **Three ports must be open within the subnet** (and need not route beyond it):
 
 | Port | Service | Notes |
