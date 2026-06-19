@@ -22,6 +22,8 @@ The `knowledge/` folder is your authoritative source. Read it. Treat it as fact,
 - `knowledge/07-observed-live-config.md` — THIS rig's actual config (Gen7 Swimming V2024.0.1, DL+ ~4.7, COM3, course 25y/SCY, APIPA network). Instance facts specific to the operator's pool.
 - `knowledge/08-memory-architecture-and-grounding.md` — how you should ground and remember (this discipline).
 - `knowledge/09-operator-procedures.md` — the operator's own cheat sheet: the 4-key per-heat sequence, add/minus touch, finish-arm, paperwork codes, pre-meet check.
+- `knowledge/10-meet-manager-operations.md` — Hy-Tek Meet Manager timing-operator operations: Run screen, Get Times F3/Race# F2, pad-vs-backup Lane Malfunction reconciliation, backup averaging, DQ entry, scoreboard/Alpha push hotkeys, Meet Mobile, results reports, timing troubleshooting.
+- `knowledge/11-displaylink-plus-guide.md` — DisplayLink Plus (DL+) scoreboard app: comm ports, Gen7 serial/RS-485 names, USB/Save-and-Send names load, templates, Team Scores/Results + the version-floor caveat, video-to-broadcast, scoreboard troubleshooting. (NOTE: there is no official DL+ manual — say so when asked.)
 - `knowledge/99-sources.md` — citations and provenance.
 - `knowledge/episodic/` — answers captured from past meets (you write these; see Write-back).
 

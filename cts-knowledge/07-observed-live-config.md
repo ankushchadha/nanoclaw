@@ -2,6 +2,23 @@
 
 > Ground truth captured 2026-06-16 from photographs of the running system. This OVERRIDES generic assumptions in the other files where they differ. Marked CONFIRMED (seen on screen) vs INFERRED (reasoned from what is shown).
 
+## The machines on deck: FOUR separate computers (operator-confirmed 2026-06-19)
+
+This rig is run by **four distinct computers**, each with one job. This is authoritative ground truth from the operator and OVERRIDES any text elsewhere that implies a single "operator laptop" runs everything.
+
+| # | Machine | Software | Connection to the Gen7 | Role |
+|---|---------|----------|------------------------|------|
+| 1 | **CTS laptop** | Gen7 Swimming (v2024.0.1) | **Ethernet / link-local APIPA** (169.254.x.x, auto-discovery) | Build the meet/session + event sequence on the timer; run timing |
+| 2 | **Scoreboard laptop** | DisplayLink Plus (DL+ v4.7.0) | **Serial COM3** (DL+ "CTS Timer #1") carries live **times**; **swimmer names loaded from a USB stick** then "Save and Send" | Drive the LED scoreboard |
+| 3 | **Meet Manager laptop (primary)** | Hy-Tek Meet Manager (8.0Gf) | **Serial via the Gen7 MM (Meet Management) port** (this machine: COM3) | Pull race **times** (Get Times F3); **operator vets results here** |
+| 4 | **Meet Manager laptop (DQ entry)** | Hy-Tek Meet Manager | (no direct timer link required) | **Enter DQ data only**, into results the operator on #3 vets |
+
+Key consequences:
+- **DL+ (#2) and Meet Manager (#3) are DIFFERENT physical machines.** They both happen to use **COM3**, but that is each machine's own local Windows COM number for its own Gen7 cable — NOT a single shared port and NOT a cross-machine "must match" rule. See the COM3 section below.
+- The Gen7 feeds three of these over **separate links**: Ethernet to the CTS laptop (#1), the scoreboard serial stream to DL+ (#2, COM3), and the **MM port** serial link to Meet Manager (#3). The MM port is the Gen7↔Meet-Manager link only; it is NOT the scoreboard/names link (see `02`).
+- **Names** ride a **USB stick** to the scoreboard laptop (#2); only **times** are live. Eliminating that USB step is the standing goal (`02`).
+- A single Device-Manager capture (below) describes only the ONE machine it was taken on — it does not describe all four.
+
 ## Resolved: which "DisplayLink"
 
 CONFIRMED: the scoreboard app is **CTS DisplayLink Plus (DL+)** by Colorado Time Systems (window title bar read "DisplayLink Plus v4.6.8 (c) Colorado Time Systems"). This is the CTS scoreboard application, NOT the generic DisplayLink USB-graphics driver. So its version DOES gate CTS scoreboard features.
@@ -41,7 +58,7 @@ CONFIRMED: In **DL+ > Settings tab > CTS Aquatic Sports > Communication Ports**:
 
 So the COM3 that "must match" is **DL+'s CTS Timer #1 input port**. DL+ reads the CTS timer/scoreboard data stream on COM3.
 
-INFERRED (the operational rule, stated carefully): the COM port number set here in DL+ (COM3) must equal the COM port that the **data source transmits the scoreboard stream on**. On this rig the source is the Gen7 Swimming software's scoreboard/serial output (and/or Meet Manager's scoreboard output if MM drives the board). All endpoints reading/writing that one serial stream must name the **same Windows COM number** (here, COM3). This is the precise meaning of Ankush's "DisplayLink COM3 must match Meet Manager COM3" rule. Confirm the source-side port number on the Gen7 Swimming / Meet Manager machine in Device Manager and set it to match COM3.
+CORRECTED (operator-confirmed 2026-06-19): DL+ (scoreboard laptop) and Meet Manager (computers-desk laptop) are **separate machines** (see "The machines on deck" above). COM3 here is the **scoreboard laptop's own** local port for the Gen7 serial cable plugged into it; the Meet Manager laptop independently has its own COM3 for the Gen7 MM-port cable. So the rule is NOT "the two must share a COM number" — it is: on **each** machine, point the app at the COM port **that machine** assigned (Device Manager > Ports) to its Gen7 cable. Both being COM3 on this rig is a per-machine coincidence. So Ankush's "DisplayLink COM3 must match Meet Manager COM3" is better understood as "each machine must use its own correct local COM port," which both happen to be COM3.
 
 > Note: the DL+ "Meet Management" port slot exists but is currently **disabled**, and CTS Timer #2 is parked on COM1. Only CTS Timer #1 / COM3 is live.
 
@@ -91,7 +108,7 @@ This (plus the Course = 25y/SCY status) is where pool course, distances, and the
 | Swimmer **names** on board | Gen7 v2023+ / DL+ v4.6.0+ | meets both | **WORKING (confirmed on screen)** |
 | **Team Scores** + **Complete Event Results** live auto-feed | Gen7 Swimming **v2026** / DL+ v4.7.0 | DL+ side OK (~4.7), **Gen7 side is v2024.0.1, below v2026** | **NOT available until Gen7 Swimming upgrades to the v2026 line** |
 
-Bottom line: updating DisplayLink Plus to 4.7 was necessary but not sufficient for live Team Scores / Complete Event Results. The **Gen7 Swimming software (currently V2024.0.1) is the limiting component** and would need the v2026 release for those live features. Names work today regardless.
+Bottom line: updating DisplayLink Plus to 4.7 was necessary for live Team Scores / Complete Event Results. **⚠️ Whether a Gen7 upgrade is ALSO needed is now UNVERIFIED (re-check 2026-06-19):** current CTS web docs name only DL+ v4.7.0 for those live features, with no stated Gen7-Swimming floor — see the VERSION-FLOOR CONFLICT note in `11-displaylink-plus-guide.md`. So do NOT assert "Gen7 v2024.0.1 is the limiting component / needs v2026" as fact until CTS confirms; the gap may be only a Hy-Tek Meet Manager license. Names work today regardless.
 
 ## Meet-day verified config (2026-06-17, meet "DEL@HOX2026")
 
@@ -104,10 +121,10 @@ Captured live from the operator laptops at a real meet. CONFIRMED the open items
 ### Meet Manager serial config (the other end of the COM3 link), CONFIRMED
 - Hy-Tek Meet Manager, licensed to "Valley Swim Association". Console type = Colorado Time Systems 6.
 - **Set-up > "Select Serial Port for CTS 6":** CTS6 Timer **Pool 1 = COM3**; Timer = 0; Scoreboard = 0 (there are TWO scoreboard fields, both 0); Open Water Button Timer = 0. ("Enter 0 to close serial port.")
-- On opening the port, MM reports: **"Communication - Pool 1 - COM3 ... CTS 6000 Version Gen7 v2024.0.1.0 ... Communications Passed."** So the COM3 match is verified end to end: Gen7 -> DL+ CTS Timer #1 (COM3) and Gen7 -> Meet Manager CTS6 Pool 1 (COM3).
+- On opening the port, MM reports: **"Communication - Pool 1 - COM3 ... CTS 6000 Version Gen7 v2024.0.1.0 ... Communications Passed."** So Meet Manager (the primary MM laptop, #3) talks to the Gen7 over **its own COM3** via the MM port. DL+ (the scoreboard laptop, #2) separately uses **its own COM3** (CTS Timer #1) for the scoreboard stream. Same number, two different machines — see "The machines on deck" and the COM3 note above; this is not one shared port.
 
 ### Why COM3: the physical serial topology (Device Manager)
-- On the DL+/MM laptop, Ports (COM & LPT) shows exactly three: **COM1 = Communications Port (native)**, **COM2 + COM3 = "PCIe to High Speed Serial Port"** (a multi-port PCIe serial card). So COM3 is a PCIe serial-card port, which is why DL+ CTS Timer #1 and MM Pool 1 both use COM3. (An FTDI/FTD2XX USB-serial driver is bundled with DL+, but Device Manager shows NO active FTDI port here, so the live serial chain is the PCIe card + native COM1, not a USB adapter.)
+- The Device-Manager capture is from **one** of the four machines (it was photographed on a single laptop; given the four-machine split above we cannot assume it describes both the DL+ and the MM laptop). On that machine, Ports (COM & LPT) showed exactly three: **COM1 = Communications Port (native)**, **COM2 + COM3 = "PCIe to High Speed Serial Port"** (a multi-port PCIe serial card). So on that machine COM3 is a PCIe serial-card port. (An FTDI/FTD2XX USB-serial driver is bundled with DL+, but Device Manager showed NO active FTDI port, so that machine's live serial chain is the PCIe card + native COM1, not a USB adapter.) Do NOT generalize this to "both DL+ and MM share one COM3" — they are separate machines, each with its own port numbering (which independently landed on COM3 here). Verify each machine's own Device Manager.
 
 ### Gen7 Swimming settings (this rig's actual config)
 - **General:** Default Governing Body = Other; **UDP Scoreboard Names = "This Computer"** (set, but UDP is NOT the active names transport here, see "Names path" below); Auto Connect = No; Flash Case Lights During Races = No; **Enable Meet Management File Export = Yes** (this export feeds the USB-stick names workflow).

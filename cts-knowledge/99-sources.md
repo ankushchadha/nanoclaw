@@ -48,6 +48,27 @@
 - PVSwim CTS Training Manual PDF (rated unreliable).
 - SwimTopia CTS troubleshooting / running-your-meet beta articles (rated unreliable).
 
+## 2026-06-19 ingestion pass — Meet Manager + DisplayLink Plus (files 10 & 11)
+
+Targeted pass to fill the coverage gap (the original pass had only the CTS↔MM *interface* articles and one DL+ feature page). Each claim in files 10/11 is cited inline and confidence-tagged; only confirmed claims were folded in.
+
+**Hy-Tek Meet Manager (SWMM7/8 user guides → file 10):**
+- hytek.active.com/user_guides_html/swmm7/ pages: `timingconsoleinterface`, `gettimesf3andracef2sel`, `runscreenappearance`, `heatwindow`, `lanemalfunction`, `backuptimeaveraging`, `runmenupreferences`, `ctstimer`, `scoreboardinterface`, `setupalphascbd`, `meetmobilepublishing`, `resultsreport`, `runthemeetmenubar`, `lanetimersheets`.
+- hytek.active.com/user_guides_html/swmm8/`meetmobilepublishing` (confirmed SWMM8 identical).
+- activenetwork.my.salesforce-sites.com/hytekswimming "Interface with CTS 5 or CTS 6".
+- COMMUNITY: superiorswimtiming.com FAQ ("No Results found" recovery) — below vendor confidence.
+
+**DisplayLink Plus (CTS web → file 11):**
+- coloradotime.com/support/manuals (confirms NO DL+ application manual; only F1062).
+- coloradotime.com/software/dlplus (v4.7.0, Win10/11, license-on-upgrade, no public download).
+- coloradotime.com/support/displaylink-plus-team-scores-and-event-results (Settings→CTS Aquatics→Meet Management port; Team Scores/Results items; Hy-Tek extra-license note; v4.7.0 gating).
+- coloradotime.com/support/connecting-meet-management-to-system-6-and-dl-computer (MM↔DL+ wiring, Genser, download).
+- coloradotime.com/support/exporting-from-divemeets-and-importing-into-displaylink (XML-via-USB import + Save and Send; diving flow, structurally the names workflow).
+- coloradotime.com/products/gen7-swim-timing-serial (RS-232/RS-485; RS-485 = no manual names; "DisplayLink+ v4.7.0 required" — names ONLY DL+, no Gen7 floor).
+- F1062 DisplayLink Video to Broadcast PDF (Rev. 202104); shop.coloradotime.com/collections/displaylink-plus (SKUs).
+
+**Conflict surfaced this pass:** current CTS web docs require only **DL+ v4.7.0** for live Team Scores/Results and name **no Gen7-Swimming v2026 floor** — contradicting the earlier verdict in `00`/`07`. The Gen7-v2026 claim is now tagged UNVERIFIED pending F1034 / CTS Support (see `11`). A WebFetch-hallucinated "Gen7 v2026.0.3" was caught and discarded.
+
 ## Verification stats
 
 | Metric | Value |

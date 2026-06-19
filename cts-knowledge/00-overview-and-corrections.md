@@ -4,7 +4,14 @@
 
 ## The stack in one paragraph
 
-A Colorado Time Systems (CTS) **Gen7** timing console captures swim times from **touchpads** (primary) and **pushbuttons / plungers** (backup) wired to per-lane inputs, started by a **start system**. The Gen7 runs **Gen7 Swimming** software (user's stack: v2024.0.1). Times move to **Hy-Tek Meet Manager for Swimming** running on a separate **meet-management PC**, and event/swimmer data plus live results drive a **scoreboard**. A scoreboard computer running **DisplayLink / DisplayLink Plus** can render names and results to an LED/video board.
+A Colorado Time Systems (CTS) **Gen7** timing console captures swim times from **touchpads** (primary) and **pushbuttons / plungers** (backup) wired to per-lane inputs, started by a **start system**. On this rig the system is run by **FOUR separate computers**, not one (operator-confirmed 2026-06-19 — full detail in `07`):
+
+1. **CTS laptop** — runs **Gen7 Swimming** (user's stack v2024.0.1), connected to the Gen7 timer (Ethernet, link-local APIPA). This is where the meet/session and event sequence are built on the timer.
+2. **Scoreboard laptop (DisplayLink Plus)** — runs **DL+** and drives the LED **scoreboard**. Meet details / swimmer **names** are loaded here from a **USB stick**, then **Save and Send** pushes them to the board. Live **times** reach DL+ over serial **COM3** (CTS Timer #1).
+3. **Meet Manager laptop (primary)** — runs **Hy-Tek Meet Manager**, wired to the Gen7 **MM (Meet Management) port** to pull race **times** (Get Times). The **operator vets race results** here.
+4. **Meet Manager laptop (DQ entry)** — a second machine running Meet Manager, used **only to enter DQ data** into the race results, which the operator on machine 3 vets.
+
+Do NOT describe this as one "operator laptop running all the apps" — that is wrong. The four roles are on four physical machines.
 
 ## Two distinct data paths (do not conflate them)
 
@@ -25,7 +32,7 @@ These came directly out of verification. They matter because the agent must not 
 
 - The COM-port-matching rule is real **only for the serial/RS-232 timer path (Path A)**, not for the UDP path.
 - In Meet Manager, the COM port you enter is **the meet-management computer's own local COM port** (the port Windows assigned to the cable/USB-serial adapter coming from the Gen7), verified in **Device Manager > Ports**. It is **not** the console's port (the console internally is always COM 1).
-- So "both must be COM3" really means: whatever serial endpoint feeds the board/Meet Manager has to be pointed at the *same physical COM port number Windows assigned*. If two pieces of software on the same PC read the same serial stream they must name the same COM number; if the number drifts after a reboot or a different USB slot, the link breaks. Always re-check Device Manager.
+- **Refined (operator-confirmed 2026-06-19): DL+ and Meet Manager run on SEPARATE laptops**, so "COM3 on DisplayLink must match COM3 on Meet Manager" is NOT a cross-machine requirement. Each app simply has to point at the COM port that **its own Windows machine** assigned to the Gen7 cable plugged into it. On this rig both happen to be **COM3** (a per-machine coincidence — each laptop's serial port landed on COM3), which is what made the "must match" idea look like a rule. The real rule: on each machine, set the app to that machine's own correct local COM port (verify in **Device Manager > Ports**); if the number drifts after a reboot or a different USB/PCIe slot, that machine's link breaks. They need not be the same number across the two laptops.
 - Source: CTS "Connecting a meet-management computer to a CTS timing console" + Hy-Tek CTS-5/6 and Gen7 interface articles.
 
 ### Correction 2: The UDP path does NOT use a matched COM port at all. It uses fixed UDP port 60287 + IP. [HIGH]
@@ -55,7 +62,7 @@ There are two different things both called "DisplayLink": (1) the generic Displa
 
 **Version verdict for this stack (Gen7 Swimming V2024.0.1 + DL+ v4.7.0), CONFIRMED 2026-06-17:**
 - **Names: WORKING** (confirmed live on the board). Meets the Gen7 v2023+ / DL+ v4.6.0+ floor.
-- **Team Scores + Complete Event Results (live auto-feed): NOT available.** That needs Gen7 Swimming **v2026** AND DL+ v4.7.0. **DL+ now meets its v4.7.0 floor exactly**, so the scoreboard side is ready, but the **Gen7 Swimming software (V2024.0.1) is below v2026** and is the sole limiting component. Upgrading the Gen7 software to the v2026 line is the only remaining step for those live features.
+- **Team Scores + Complete Event Results (live auto-feed): status NOW IN QUESTION — verify before any purchase.** This file previously stated it needs Gen7 Swimming **v2026** AND DL+ v4.7.0. **⚠️ Re-check 2026-06-19 (see `11-displaylink-plus-guide.md`):** current CTS web docs name **only DL+ v4.7.0** for "integrated start lists, team scores, and event results" — they do NOT state a Gen7-Swimming version floor. The Gen7-v2026 requirement could not be re-confirmed from a current CTS source, so treat it as **UNVERIFIED**. The real blocker may be only **DL+ v4.7.0 (already met) + a Hy-Tek Meet Manager license**, not a Gen7 upgrade. DO NOT tell the operator to buy a Gen7 upgrade for this until CTS confirms a Gen7-side floor (F1034 / CTS Support). Names work today regardless.
 
 **Names-path reality (operator-confirmed 2026-06-17): names currently move via a USB STICK, not live.** The workflow: export the start list / names to a USB drive, then load them into DL+ on the scoreboard PC. The Gen7 setting "UDP Scoreboard Names = This Computer" exists, but UDP names are NOT the active transport on this rig. So the split is: **times** flow LIVE over serial **COM3** (Gen7 -> DL+ CTS Timer #1, and Gen7 -> Meet Manager CTS6 Pool 1); **names** are the manual USB download/upload. Eliminating that USB step (moving names onto the live UDP/RS-485 path, which needs RS-485 to DL+ plus Gen7 v2023+ / DL+ v4.6+) is the standing improvement goal. See `02` for the UDP-names requirements and `07` for the verified config.
 

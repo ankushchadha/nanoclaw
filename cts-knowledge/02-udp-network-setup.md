@@ -53,7 +53,7 @@ A common and costly mix-up. The **"MM port"** (Meet Management port on the Gen7)
 
 Getting swimmer NAMES onto the scoreboard live is a **separate connection: Gen7 -> DisplayLink Plus** (the scoreboard PC), which the docs say needs **RS-485** (a different electrical interface than the MM serial port). So "I already have the MM port" does NOT mean names can ride it; the names path is a different cable to the DL+ computer. The likely missing piece for live names is that RS-485 link, not a software upgrade and not the MM port.
 
-**CAVEAT (verify before wiring/buying):** this rig's exact serial topology is not fully traced from photos (COM3 appears in BOTH Meet Manager AND DL+, which implies two separate cables/ports on separate machines). Trace the actual cabling (Gen7 MM port vs Gen7 scoreboard output; what reaches the DL+ PC) and confirm the required interface with CTS before acting. This is a lead, not a guarantee.
+**CONFIRMED 2026-06-19 (operator):** the earlier guess is right — Meet Manager and DL+ run on **separate machines**, so COM3 appearing in both is two separate cables/ports on two different laptops (each its own local COM3), not one shared port. Specifically: the Gen7 **MM port** → the **Meet Manager laptop** (times for Get Times); the Gen7 **scoreboard serial output** → the **DisplayLink Plus laptop** (CTS Timer #1, COM3); and **names ride a USB stick** to the DL+ laptop. See `07` "The machines on deck" for the full four-computer layout. Still verify the exact RS-485-vs-software lever with CTS before buying (the names-live question), but the machine topology itself is now confirmed.
 
 ## The DisplayLink-naming caveat (resolve before trusting v2026 claims)
 
