@@ -1,5 +1,7 @@
 # DisplayLink Plus (DL+) — Scoreboard Application Guide
 
+> **Instance values defer to `07`.** Any rig-specific value (lane count, model, harness, ports, course, versions, network, what's wired) is authoritative in `07`'s **RIG PARAMETERS** table — this file states the general rule; `07` governs the rig's actual value. See `08`.
+
 > Ingested 2026-06-19 from a verified pass over CTS web docs (sources in `99-sources.md`). DL+ knowledge elsewhere in this KB (file `07`) is rig-observed from photos; this file grounds DL+ in actual documentation where it exists.
 
 > **KEY FINDING — does a real DL+ manual exist? NO.** The CTS manuals portal lists **no comprehensive DisplayLink Plus user manual** (no F-number PDF for the application itself). DL+ documentation is **scattered**: one PDF for the video-broadcast add-on (F1062), a few text support pages, and YouTube tutorials. Treat any DL+ menu path not on this page as UNVERIFIED, and when asked for "the DL+ manual," say plainly that there isn't one. [HIGH — coloradotime.com/support/manuals lists only F1062 under DisplayLink]

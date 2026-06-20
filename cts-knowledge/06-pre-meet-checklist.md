@@ -1,5 +1,7 @@
 # Pre-Meet Checklist and Open Questions
 
+> **Instance values defer to `07`.** Any rig-specific value (lane count, model, harness, ports, course, versions, network, what's wired) is authoritative in `07`'s **RIG PARAMETERS** table — this file states the general rule; `07` governs the rig's actual value. See `08`.
+
 > A working checklist assembled from the verified interface facts, plus the gaps the agent should fill from primary docs or by asking the operator. Items derived from confirmed claims are tagged; assembled/sequenced steps are best-practice synthesis, not a verbatim CTS checklist (no authoritative step-by-step checklist was verified).
 
 ## Pre-meet checklist (synthesis; verify on-site)

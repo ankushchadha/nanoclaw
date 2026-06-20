@@ -1,5 +1,7 @@
 # CTS Gen7 Swim Timing: System Overview and Critical Corrections
 
+> **Instance values defer to `07`.** Any rig-specific value (lane count, model, harness, ports, course, versions, network, what's wired) is authoritative in `07`'s **RIG PARAMETERS** table — this file states the general rule; `07` governs the rig's actual value, with a `rig-confirmed` vs `candidate` status. See `08` for the convention.
+
 > Episodic-memory reference for a specialized CTS timing agent. Compiled 2026-06-16 from a verified deep-research pass (25 claims, 3-vote adversarial verification, 0 killed). Confidence and source per claim. Treat the official CTS and Hy-Tek documents in `99-sources.md` as ground truth; treat anything tagged UNVERIFIED as a lead to confirm, not a fact to assert.
 
 ## The stack in one paragraph

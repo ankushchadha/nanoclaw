@@ -1,5 +1,7 @@
 # Troubleshooting Guide
 
+> **Instance values defer to `07`.** Any rig-specific value (lane count, model, harness, ports, course, versions, network, what's wired) is authoritative in `07`'s **RIG PARAMETERS** table — this file states the general rule; `07` governs the rig's actual value. See `08`.
+
 > Symptom-to-cause table for the Gen7 + Meet Manager + scoreboard chain. Confirmed causes are tagged; reasoned/likely causes are marked as such so the agent does not present inference as documented fact.
 
 ## No times reaching Meet Manager

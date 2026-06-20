@@ -1,5 +1,7 @@
 # Hy-Tek MEET MANAGER for Swimming — Timing Operator Operations
 
+> **Instance values defer to `07`.** Any rig-specific value (lane count, model, harness, ports, course, versions, network, what's wired) is authoritative in `07`'s **RIG PARAMETERS** table — this file states the general rule; `07` governs the rig's actual value. See `08`.
+
 > Ingested 2026-06-19 from a verified pass over the Hy-Tek SWMM7/8 user guides (sources in `99-sources.md`). Scope: operating the **Run screen** of Hy-Tek MEET MANAGER for Swimming (this rig: Release 8.0Gf, Pro Multi-User) as the *timing operator* driving a CTS Gen7. The CTS↔MM serial interface (console select, Open/Close Serial Port, the COM-port rule) is in `03-meet-manager-interface.md` and is NOT repeated here. Docs cited are the SWMM7 user guide (menus/hotkeys match SWMM8 unless flagged); confirm edge cases on the actual 8.0Gf install.
 
 ## The Run screen and getting times

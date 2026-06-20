@@ -1,5 +1,7 @@
 # Path A: Serial / USB Timer Link (pulling times into Meet Manager)
 
+> **Instance values defer to `07`.** Any rig-specific value (lane count, model, harness, ports, course, versions, network, what's wired) is authoritative in `07`'s **RIG PARAMETERS** table — this file states the general rule; `07` governs the rig's actual value. See `08`.
+
 > How finished race times move from the Gen7 console into Hy-Tek Meet Manager over a serial or USB-serial connection. This is the COM-port path.
 
 ## How the connection physically exists

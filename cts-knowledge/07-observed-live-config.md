@@ -2,6 +2,31 @@
 
 > Ground truth captured 2026-06-16 from photographs of the running system. This OVERRIDES generic assumptions in the other files where they differ. Marked CONFIRMED (seen on screen) vs INFERRED (reasoned from what is shown).
 
+## ⭐ RIG PARAMETERS — the authoritative single source for this rig's instance values
+
+> This table is the **canonical source of truth** for every rig-specific (instance/config) value. The semantic files (00–06, 10, 11) state general CTS *rules*; where they mention a value for THIS rig, **this table governs.** Two-axis status per row: **rig-confirmed** (seen on the rig: photo/operator/date) vs **candidate** (derived or web-inferred — confirm on the rig before relying). See `08` for the convention.
+
+| Parameter | This rig | Provenance | Status |
+|---|---|---|---|
+| Lanes / ends used | **10 lanes, NEAR-END only** (far-end pads not wired) | back-panel photos | rig-confirmed 2026-06-19 |
+| Course | **25 yd / SCY** | Run-screen status bar | rig-confirmed 2026-06-17 |
+| Timer model | **GEN7-TMR-L** (Legacy) | nameplate IMG_0468 | rig-confirmed 2026-06-19 |
+| Timer S/N | **202214306** | nameplate + Available Timers | rig-confirmed |
+| Gen7 Swimming software | **V2024.0.1** | app title bar | rig-confirmed 2026-06-17 |
+| DisplayLink Plus | **v4.7.0** (CC Express) | title bar/splash | rig-confirmed 2026-06-17 |
+| Meet Manager | **8.0Gf Pro Multi-User** (Valley Swim Association) | MM screen IMG_0451 | rig-confirmed 2026-06-17 |
+| Lane harness | **CH41-10** (10-lane primary; CH41-N = N lanes) | derived from lane count | **candidate** — confirm the actual harness label on the rig |
+| Scoreboard output in use | **1/4" LEGACY jack**; RS-485 SCBD outputs (blue □ / black ◆) EMPTY | back-panel photos IMG_0467/0469 | rig-confirmed 2026-06-19 |
+| Gen7 ↔ Meet Manager | **MM port USB Type-B → USB A-B → virtual COM3** | panel + CTS Quick Start Guide | rig-confirmed 2026-06-19 |
+| Gen7 ↔ CTS laptop | **Ethernet / CAT6** ("CTS" RJ45 port) | panel + CTS guide | rig-confirmed 2026-06-19 |
+| DL+ timer input | **CTS Timer #1 = COM3, "Colorado" protocol** | DL+ Comm Ports screen | rig-confirmed 2026-06-17 |
+| Network | **APIPA link-local 169.254.x.x — changes per session, DO NOT hard-code** | Gen7 status bar | rig-confirmed; **volatile** |
+| UDP Scoreboard Names setting | **"This Computer"** | Gen7 Settings screen | rig-confirmed 2026-06-17 |
+| Names transport | **USB stick** (SCB files → loaded into BOTH Gen7 + DL+); live names not yet wired | operator | rig-confirmed 2026-06-19 |
+| Start system | not plugged into the panel in verified photos | back-panel photos | rig-confirmed; verify on meet day |
+
+When any of these changes (re-cabling, a software update, a different harness), **update this table first**, then reconcile the semantic files against it (see the contradiction check in `08`).
+
 ## The machines on deck: FOUR separate computers (operator-confirmed 2026-06-19)
 
 This rig is run by **four distinct computers**, each with one job. This is authoritative ground truth from the operator and OVERRIDES any text elsewhere that implies a single "operator laptop" runs everything.

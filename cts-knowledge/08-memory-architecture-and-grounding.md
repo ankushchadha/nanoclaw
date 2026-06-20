@@ -41,6 +41,27 @@ The grounding guarantees below are only as good as the facts ingested. The failu
 
 This is the **build-time twin of the citation guardrail below**: the runtime guardrail checks that the agent's answer is supported by the KB; this rule checks that the KB is supported by the source. Same principle — verify the claim against the actual source, never trust an intermediary.
 
+## Separating SEMANTIC from INSTANCE memory (the CH41-8 lesson)
+
+The "CH41-8 harness" error was NOT a hallucination and NOT a citation failure: CH41-8 is a real CTS 8-lane harness, correctly cited. It was wrong by **applicability** — an 8-lane part recorded as the harness for a **10-lane** rig. Cite/defer/containment do not catch this class: cite checks *sourcing*, defer fires on *gaps*, containment cuts *noise* — none asks "does this true fact fit THIS instance?" The root cause: an **instance/config fact** (which depends on the specific pool) was stored in a **semantic file** as if it were a general fact, and never reconciled against the rig's known lane count. Two facts in the KB contradicted each other (10-lane pool + 8-lane harness) and nothing flagged it.
+
+**The discipline (do this for every rig-specific fact):**
+
+1. **Single-source instance facts in `07`'s "RIG PARAMETERS" table.** That table is the authority for every value that depends on this rig (lane count, model, harness, course, ports, versions, network, what's wired). Semantic files (00–06, 10, 11) state the general **rule** and **defer to 07** for the rig's value — they never assert a rig value as a general fact. Record the *rule + binding* ("harness = CH41-N, N = lane count → 07 says 10 → CH41-10"), not a frozen example.
+
+2. **Two-axis confidence — tag both, not one:**
+   - **Source-confidence:** `[HIGH]` / `COMMUNITY` / `UNVERIFIED` — does a doc say it?
+   - **Instance-fit:** `rig-confirmed` (seen on the rig: photo / operator / date) vs `candidate` (web-inferred or derived — confirm on the rig before relying).
+   CH41-8 was source-HIGH but instance-fit-`candidate`; the single `[HIGH]` tag hid that. A `candidate` instance fact is **defer-able** even though it is sourced — the agent should hedge ("the 10-lane primary harness is CH41-10; confirm the actual part on your rig") rather than assert.
+
+3. **Instance facts come from the RIG, not the web.** The web tells you what *exists*; only photos/the operator tell you what's *installed*. Web-derived hardware specifics enter as `candidate` until confirmed on the rig.
+
+4. **Contradiction check (build/curate time).** Whenever 07's RIG PARAMETERS change, cross-check the semantic files for any embedded value that disagrees (lane count, model, port, version). "8-lane harness vs 10-lane pool" is `8 ≠ 10` — trivially detectable. This is the same tripwire used in the write-back security design, run at KB-build time. (Lightweight today: a curation step + grep; later: a small script.)
+
+5. **Answer-time tiers (richer than cite/uncited).** The agent should distinguish three tiers when it answers: **general CTS fact** (semantic, sourced) → **confirmed for your rig** (instance, rig-confirmed) → **candidate for your rig** (defer/verify). This surfaces the exact axis CH41-8 fell through.
+
+Net: cite/defer/containment protect against unsourced, hallucinated, and noisy claims; **separating semantic from instance memory + two-axis confidence + the contradiction check** protect against a true fact applied to the wrong instance.
+
 ## Citation guardrail (show your source)
 
 Two halves. The positive half is easy; the teeth are on the negative half.
