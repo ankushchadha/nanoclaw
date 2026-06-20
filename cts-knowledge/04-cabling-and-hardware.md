@@ -1,53 +1,67 @@
 # Cabling, Ports, and Hardware Interconnect
 
-> What plugs into what. Confirmed items are tagged; lane-input pinouts and start-system wiring were NOT fully verified and are flagged as such.
+> What plugs into what. The "This rig's actual wiring" section below is ground truth from the operator's own back-panel photos + the CTS Gen7 Quick Start Guide (2026-06-19) and OVERRIDES the generic options where they differ. Pin-level pinouts remain unverified.
 
-## Confirmed cables and ports
+## This rig's actual back panel + wiring (GEN7-TMR-L "Legacy", verified 2026-06-19)
 
-### Console-to-PC (serial times, Path A)
-- **9-pin RS-232 serial cable**: 9-pin female one end, 9-pin male the other. [HIGH, Hy-Tek swmm6]
-- CTS guidance: **standard / straight-through, no null modem**. Hy-Tek note: some **early CTS 6** need a **null modem**. [Vendor conflict, 2-1]
-- Modern PC with no serial port: **USB-to-serial adapter**, or the CTS **USB-Connect** device (emulates a 9-pin null-modem link over USB, appears as a virtual COM port). [HIGH, F1034]
+**Model: `GEN7-TMR-L`** (the **"L" = Legacy** on-deck Gen7 timer), S/N 202214306, 12VDC / 7A. Confirmed from the device nameplate + back-panel photos.
 
-### Console-to-PC (Ethernet, Path B / control)
-- **R-SJ-xx** is the named **Ethernet timer-to-computer cable**. [HIGH, F1066]
-- Timer and laptops must be on the **same physical network** for auto-discovery. [HIGH]
+**Back-panel ports, left → right** (photos IMG_0467/0469/0470/0471):
+- **Scoreboard outputs (left cluster, labeled SCOREBOARD):**
+  - a **1/4-inch phone jack** (the legacy CTS scoreboard-data output), next to a **green circle** marker — **THIS is the output in use on this rig.**
+  - two **round 4-pin connectors** marked with a **blue square** and a **black diamond** = the **RS-485 SCBD outputs** (F1034: "Scoreboard output: RS-485, differential pair"). **Currently UNUSED / empty.**
+- **CTS Expansion Port** (monitor/computer icon): **USB Type-B**. Unused.
+- **Meet Management port** (stopwatch+report icon, "MM" sticker): **USB Type-B**. → Meet Manager laptop.
+- **USB-A** port. Unused.
+- **Ethernet** (network icon, "CTS" sticker): RJ45. → CTS laptop.
+- **START** inputs (left, round): start-system. Not plugged in in this state.
+- **NEAR END** harness connectors (2 large, in use) + **FAR END** harness connectors (4 slots, **all empty** — far-end not physically wired; near-end-only timing).
+- **12VDC / 7A** power.
 
-### Gen7 rear ports referenced by the docs
-- **Meet Management port** on the back of the Gen7: the meet-management cable connects here and to the meet-management PC. A missing cable here causes "Event Sequence not received." [HIGH, Gen7 manual p.46]
-- Ethernet port for the control/UDP network. [HIGH]
-- **Gen7 Serial Connect Hubs** are a CTS product for the serial fan-out. [HIGH, CTS product page]
+**The CTS Quick Start Guide's 6 connections (authoritative topology, photos IMG_0472–0475):**
+| # | Connection | Cable | Endpoint |
+|---|-----------|-------|----------|
+| ① | Power | Power supply | GFCI outlet |
+| ② | **Timer Interface** | **CAT6 / Ethernet** | **CTS laptop** (Gen7 Swimming) |
+| ③ | Near-end timing | CH41-10 harness | pads + pushbuttons |
+| ④ | Far-end timing (**OPTIONAL**) | harness | far-end pads (not used here) |
+| ⑤ | **Meet Management** | **USB A-B cable** | **Meet Manager laptop** |
+| ⑥ | **Scoreboard** | scoreboard cable | **"Otter SCBD" or "Matrix / DL+"** (this rig = DL+ → matrix LED board) |
 
-### Lane input harness
-- **CH41-8**: an **8-lane touchpad-and-pushbutton primary cable harness** (CTS product). This is the per-lane bundle carrying both pad and pushbutton lines. [HIGH, CTS shop page]
+**So the real data paths on this rig:**
+- **Times/scoreboard data → DL+:** Gen7 **1/4" legacy scoreboard output** → cable → **DL+ scoreboard laptop**, read as **CTS Timer #1 = COM3, "Colorado" protocol** (see `07`) → DL+ drives the matrix LED board. (A laptop has no 1/4" jack, so a 1/4"-to-serial/USB adapter is in that path; the COM number is the laptop's, not the cable's.) **This is NOT RS-232 and NOT the RS-485 SCBD outputs.**
+- **Times/events → Meet Manager:** Gen7 **MM port (USB Type-B)** → **USB A-B cable** → MM laptop, seen as a virtual COM port (here COM3).
+- **Control → CTS laptop:** Gen7 **Ethernet** → **CAT6** → CTS laptop (APIPA/auto-discovery).
 
-### Start system
-- **Championship / Elite Starter** (CTS) documented in **F1064**. The start system connects to the console to provide the gun/horn start reference. [Source present; specific pinout NOT extracted]
+**The live-names upgrade (now concrete):** names can't ride the legacy 1/4" output. The Gen7's **RS-485 SCBD outputs (the blue-square / black-diamond round connectors) are present and EMPTY** — connect the DL+ computer to one of those via **RS-485** to meet F1034's name-integration requirement (software floors already met). The upgrade is "move/add the DL+ link to the unused RS-485 port," not a mystery cable. [F1034 Appendix C]
 
-## RS-232 vs RS-485 (important distinction)
+## W-1236 cable (the "monster jack") — caveat
 
-| Interface | Used for | Notes |
-|-----------|----------|-------|
-| **RS-232** | Console-to-PC serial **times** (Path A) | 9-pin; point-to-point; short runs |
-| **RS-485** | Gen7-to-DisplayLink-Plus **name integration** (Path B) | **Required** for names; differential, longer runs. **RS-232 will not carry names.** [HIGH, F1034 App. C] |
+The operator's scoreboard cable has a **1/4" phone-plug** end (fits the Gen7's 1/4" legacy output). The operator guessed it is a **"W-1236"** — but W-1236 is a **Daktronics/Fairplay** scoreboard cable (male-to-male 1/4" stereo), **NOT a CTS part** (CTS store returns no results for it). So the *connector* matches, but the exact part number is UNVERIFIED — it may be a Daktronics W-1236 or a CTS 1/4" scoreboard cable. Do not assert "W-1236" as the CTS cable.
 
-A frequent mistake: trying to drive name integration over the RS-232 serial line. Names need the **RS-485** link to the DL+ computer.
+## Lane input harness
 
-## Lane harness / per-lane connectors (verified at the 2026-06-17 meet)
+- **CH41-10**: the **10-lane** touchpad-and-pushbutton **primary** cable harness (correct for this 10-lane pool). The `CH41-N` suffix is the lane count (CTS sells CH41-6 / CH41-8 / CH41-10); the matching 10-lane pushbutton **backup** harness is **CH41-10-3**. [HIGH, shop.coloradotime.com] *(An 8-lane CH41-8 would cover only 8 of the 10 lanes — do not spec it for this pool.)*
+- Per-lane breakout block carries labeled connectors: **PRIME** = touchpad; **BUTTON A / B / C** = the three pushbuttons/plungers. Working convention on this rig: pad + plunger A + B active, C spare. [verified, IMG 0449/0450]
 
-Each lane has a per-lane cable harness with a small breakout block carrying **labeled connectors**:
-- **PRIME** = the **touchpad** (the primary timing input for that lane).
-- **BUTTON A**, **BUTTON B**, **BUTTON C** = the three **pushbuttons / plungers** for that lane (the backup timing inputs).
+## Alternative console-to-PC methods (not used on this rig, for reference)
 
-So a lane is wired: touchpad -> PRIME; plungers -> BUTTON A / B / C. On this rig the working convention is **pad + plunger A + plunger B as the active backups, with C as an extra/spare backup**. The harness floats on foam at the deck end and runs back toward the lane module / console. This is the connector-LEVEL labeling (which plug goes where, what an operator needs when re-cabling a lane). The pin-level signal/ground assignment inside each connector was not captured. [verified, IMG 0449/0450 + operator caption]
+F1034 documents other ways to connect Meet Manager to the timer if the USB A-B path isn't used:
+- **9-pin RS-232 serial cable** (standard/straight-through; CTS says no null modem, Hy-Tek notes some early CTS-6 need a null modem — [vendor conflict, 2-1]).
+- **USB-Connect device** (emulates a 9-pin null-modem serial link entirely over USB → virtual COM port). [HIGH, F1034]
+- **Gen7 Serial Connect Hubs** (CTS product for serial fan-out).
+This rig uses the **USB A-B** MM-port path instead (see above).
+
+## Start system
+
+- **Championship / Elite Starter** (CTS, documented in **F1064**) provides the gun/horn start reference to the console. Not plugged into the panel in the verified photos (verify on meet day). Pinout NOT extracted.
 
 ## NOT VERIFIED (lead, not fact)
 
-The research explicitly did **not** confirm these. The agent should look them up in F1034 / the Gen7 hardware guide / F1064 or ask the operator, rather than assert:
+- Exact **lane-input PIN-level pinouts** inside the PRIME/BUTTON connectors (connector-level labeling is confirmed above; pin-level is not).
+- **Start-system cable wiring / pinout.**
+- **Dual / far-end pad** physical wiring (far-end is unused here).
+- The exact electrical signaling of the **1/4" legacy scoreboard output** vs the RS-485 outputs (F1034 specs RS-485 for the round connectors; it does not separately spec the 1/4" jack's signaling — DL+ reads it as the "Colorado" protocol).
+- The **R-SJ-xx** cable name (previously cited to F1066) is **absent from F1034 and F1066** — UNVERIFIED; the CTS guide just calls the timer-interface cable "CAT6."
 
-- Exact **lane-input PIN-level pinouts** (which pin in the PRIME/BUTTON connectors carries pad signal, button signal, ground). Connector-level labeling (PRIME, BUTTON A/B/C) is now confirmed above; the wiring inside the connector is not.
-- **Start-system cable wiring / pinout** (gun-to-console connector).
-- **Dual / multi-pad lane** physical wiring and how it is configured in the Gen7 menu (e.g. pads on both ends for relays/turns).
-- Lane-module internal wiring.
-
-A community blog (Marco's Corner) documents the **CTS scoreboard serial protocol** at the byte level and may help if you ever need to decode/emulate the scoreboard data stream, but it is a blog (lower confidence than CTS docs). See `99-sources.md`.
+A community blog (Marco's Corner) documents the CTS scoreboard serial protocol at the byte level (lower confidence than CTS docs). See `99-sources.md`.

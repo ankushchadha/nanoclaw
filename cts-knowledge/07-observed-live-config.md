@@ -19,6 +19,14 @@ Key consequences:
 - **Names** ride a **USB stick** to the scoreboard laptop (#2); only **times** are live. Eliminating that USB step is the standing goal (`02`).
 - A single Device-Manager capture (below) describes only the ONE machine it was taken on — it does not describe all four.
 
+### Physical wiring CONFIRMED 2026-06-19 (back-panel photos + CTS Gen7 Quick Start Guide)
+Timer model = **`GEN7-TMR-L`** ("L" = **Legacy** on-deck timer), S/N 202214306, 12VDC/7A. What is actually plugged in (full detail in `04`):
+- **CTS laptop (#1):** Gen7 **Ethernet** ("CTS" RJ45 port) → **CAT6** → CTS laptop. [CTS guide ② "Timer Interface"]
+- **Scoreboard laptop (#2, DL+):** Gen7 **1/4" LEGACY scoreboard output** (the jack by the green circle, labeled SCOREBOARD) → cable → DL+ laptop, read as **CTS Timer #1 = COM3, "Colorado" protocol** → DL+ drives the matrix LED board. [CTS guide ⑥ "Matrix / DL+"]. The Gen7's **RS-485 SCBD outputs (blue square / black diamond round connectors) are EMPTY** — that is the unused live-names path (`02`/`04`).
+- **Meet Manager laptop (#3):** Gen7 **MM port = USB Type-B** → **USB A-B cable** → MM laptop (virtual COM3). [CTS guide ⑤]. NOT a 9-pin serial cable.
+- **Near-end harness only:** the **FAR-END harness connectors are EMPTY** → this rig runs **near-end-only timing**, even though the Gen7 Swimming software setting reads "Far End = Pads" (that is capability config, not physical wiring). The **start system is also not plugged into the panel** in the verified photos.
+- Lane harness for a 10-lane pool = **CH41-10** (not CH41-8). [shop.coloradotime.com]
+
 ## Resolved: which "DisplayLink"
 
 CONFIRMED: the scoreboard app is **CTS DisplayLink Plus (DL+)** by Colorado Time Systems (window title bar read "DisplayLink Plus v4.6.8 (c) Colorado Time Systems"). This is the CTS scoreboard application, NOT the generic DisplayLink USB-graphics driver. So its version DOES gate CTS scoreboard features.

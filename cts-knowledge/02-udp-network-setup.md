@@ -2,7 +2,7 @@
 
 > This is the path that eliminates the USB-drive download/upload workflow. It pushes start lists, swimmer names, and event sequence live. It uses a fixed UDP port and IP addressing, NOT a matched serial COM port.
 
-> **Current state on this rig (2026-06-17):** UDP names are NOT yet active here. Names still move via a **USB stick** (the manual download/upload). Times flow live over serial COM3; only names are manual. Switching names to this UDP/RS-485 path (and retiring the USB step) is the standing goal. See `07` for the confirmed current setup.
+> **Current state on this rig (verified 2026-06-19 from back-panel photos + CTS Quick Start Guide):** the Gen7 (model GEN7-TMR-L, "Legacy") feeds DL+ via its **1/4" LEGACY scoreboard output** (read by DL+ as CTS Timer #1 = COM3, "Colorado" protocol) — this carries times but NOT names. Names still move via a **USB stick** (manual download/upload). **The concrete upgrade for live names:** the Gen7's **RS-485 SCBD outputs (the blue-square / black-diamond round connectors) are physically PRESENT but EMPTY** on the panel — connect the DL+ computer to one of those via RS-485 to meet the F1034 name-integration requirement (software floors already met). So "switch names off the USB stick" = wire up the unused RS-485 SCBD output to DL+ (or the Meet-Manager UDP path below). See `04` for the full back-panel wiring and `07` for the confirmed setup.
 
 ## The headline facts
 
