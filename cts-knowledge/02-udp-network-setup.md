@@ -4,6 +4,24 @@
 
 > **Current state on this rig (verified 2026-06-19 from back-panel photos + CTS Quick Start Guide):** the Gen7 (model GEN7-TMR-L, "Legacy") feeds DL+ via its **1/4" LEGACY scoreboard output** (read by DL+ as CTS Timer #1 = COM3, "Colorado" protocol) — this carries times but NOT names. Names still move via a **USB stick** (manual download/upload). **The concrete upgrade for live names:** the Gen7's **RS-485 SCBD outputs (the blue-square / black-diamond round connectors) are physically PRESENT but EMPTY** on the panel — connect the DL+ computer to one of those via RS-485 to meet the F1034 name-integration requirement (software floors already met). So "switch names off the USB stick" = wire up the unused RS-485 SCBD output to DL+ (or the Meet-Manager UDP path below). See `04` for the full back-panel wiring and `07` for the confirmed setup.
 
+## Complete names architecture — current workflow + the two ways to drop the USB stick (operator-confirmed + F1034, 2026-06-19)
+
+**How names + race info move TODAY:**
+1. **Meet Manager** exports **SCB name files** (+ a `.sch` event sequence) to a **USB stick**.
+2. That USB is loaded into **TWO machines** (same SCB files — F1034: "the same SCB files that are used to pre-load names to DL+"):
+   - **CTS laptop (Gen7 Swimming):** Quick Options → **Load Scoreboard Names** → Select Folder. [F1034 p.88]
+   - **Scoreboard laptop (DL+):** DL+'s own load-names-from-USB option.
+3. **Times** flow live from the Gen7 over the scoreboard link (1/4" legacy output → DL+ as COM3, "Colorado"). DL+ renders **pre-loaded names + live times** → LED board.
+   - So names are **pre-loaded into DL+ directly from USB** — they do NOT ride the timing link. (Corrects an earlier note: the legacy link carries times, not names.)
+
+**Option A — replace the USB stick with the network, keep pre-loading (free, NO software upgrade):**
+Windows file sharing [F1034 p.88 "File Sharing"]: both laptops on the same network + a shared folder; enable **"Meet Management File Export"** in Gen7 Settings → General. MM exports SCB names / `.sch` events to the share (and imports `.gen` results back). On the CTS laptop, point **Load Scoreboard Names** at the network folder instead of the USB. **CTS-laptop side is documented; the DL+ side (loading SCB from a network folder vs USB) is NOT documented — no DL+ manual — so TEST it.**
+
+**Option B — live names, NO pre-loading anywhere (the real "no USB" path) = TWO legs, both required:**
+- **UDP, MM → CTS laptop:** Gen7 Settings "**UDP Scoreboard Names = This Computer**" (ALREADY set on this rig). In MM: **Run → Interfaces → Scoreboard → "Set UDP Port and IP Address"** → **port 60287** + the **CTS laptop's IP** (lower-left timer-connection status in Gen7 Swimming), or **255.255.255.255** broadcast (single timer, same subnet). Both laptops on the **same subnet**. Send the first start list with **CTRL+F10**; auto-updates per heat after. May require the MM **Alpha-Scoreboard license**. [F1034 p.84]
+- **RS-485, Gen7 → DL+:** the UDP-delivered data reaches the video board "with CTS RS-485 data" [F1034 p.34] — wire one of the **EMPTY blue-square / black-diamond RS-485 SCBD outputs** to the DL+ computer. [F1034 App C]
+- **UDP (MM→CTS laptop) + RS-485 (Gen7→DL+) = live names, no USB anywhere.** No Gen7 software upgrade for plain names (floors met). Live **Team Scores / full results** is separate and DOES need Gen7 **v2026** [F1034 p.81].
+
 ## The headline facts
 
 - **Fixed UDP port: `60287`.** This is the value that goes in the Remote Scoreboard Port box. [HIGH, F1034 pp. 84-85]
