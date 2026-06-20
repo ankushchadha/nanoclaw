@@ -53,7 +53,7 @@
 ## Lane not registering / false starts / dual-pad lanes
 
 > NOT VERIFIED by research. Do not assert specific Gen7 menu steps or reconciliation thresholds. General known-good direction:
-- **Lane not registering:** suspect the per-lane harness (CH41-8) connection, the pad cable, or a disabled lane in the Gen7 lane config.
+- **Lane not registering:** suspect the per-lane harness (CH41-10 on this 10-lane rig — see `07`) connection, the pad cable, or a disabled lane in the Gen7 lane config.
 - **Pad vs button mismatch:** both pad and backup-button times are stored and retrieved together; reconcile in Meet Manager. The exact auto-override tolerance is unconfirmed (see open questions).
 - **False starts / dual-pad lanes:** Gen7 menu configuration for these was not verified. Consult F1034 / the Gen7 hardware guide or ask the operator.
 

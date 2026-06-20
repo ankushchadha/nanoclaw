@@ -7,7 +7,7 @@
 ## Pre-meet checklist (synthesis; verify on-site)
 
 ### Hardware and cabling
-- [ ] Touchpads + pushbuttons connected per lane via the lane harness (e.g. CH41-8). [hardware confirmed]
+- [ ] Touchpads + pushbuttons connected per lane via the lane harness (**CH41-10** for this 10-lane pool — see `07`). [hardware confirmed]
 - [ ] Start system connected to the console (gun/horn reference).
 - [ ] Console-to-PC serial/USB link in place (9-pin RS-232, USB-to-serial, or USB-Connect). [HIGH]
 - [ ] Meet-management cable seated in the Gen7 **Meet Management port** AND the PC. [HIGH]
