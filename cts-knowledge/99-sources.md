@@ -6,6 +6,7 @@
 
 - **Gen7 Serial Timer User Guide (F1034)**, current Rev 202603. The single richest source; carries the UDP port 60287, RS-485 name-integration requirement, version floors, USB-Connect details, and Save-and-Reset dataflow.
   https://coloradotime.com/hubfs/CTS%20Website%20%20Assets/Manuals/Swim%20Timing%20Components/Gen7/Gen7SerialTimerUserGuide_F1034.pdf
+- **Gen7 LEGACY Timer User Guide (F1058)**, Rev 202603 — **THE authority for THIS rig** (a GEN7-TMR-L *Legacy*) wherever it differs from F1034 (Serial). Key deltas: Legacy adds an **RS-232 "Legacy Scoreboard" output** (Serial is all-RS-485, "Blue/Black SCBD"); Legacy wires lanes via **direct deckplates/harnesses into 8 fixed connectors** (no serial nodes/hubs). Most other facts identical to F1034. Bundled inside the Gen7 Swimming installer zip (added to the KB 2026-06-20). Local copy: /tmp/gen7-docs/Gen7LegacyTimerUserGuide_F1058.pdf.
 - **Gen7 Networking Information (F1066)**. Same-network requirement, auto-discovery, R-SJ-xx cable, ports TCP 22 / TCP 7105 / UDP 5353.
   https://coloradotime.com/hubfs/CTS%20Website%20%20Assets/Manuals/Swim%20Timing%20Components/Gen7/Gen7_Networking_Information_F1066.pdf
 - **CTS Support: Manuals portal** (lists F1034, F1066, F1041, F1044, F1049 Gen7 docs; F1062 DisplayLink Video to Broadcast).

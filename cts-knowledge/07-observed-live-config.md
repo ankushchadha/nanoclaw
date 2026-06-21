@@ -6,6 +6,8 @@
 
 > This table is the **canonical source of truth** for every rig-specific (instance/config) value. The semantic files (00–06, 10, 11) state general CTS *rules*; where they mention a value for THIS rig, **this table governs.** Two-axis status per row: **rig-confirmed** (seen on the rig: photo/operator/date) vs **candidate** (derived or web-inferred — confirm on the rig before relying). See `08` for the convention.
 
+> **⚠️ Manual variant:** this rig is the **GEN7-TMR-L Legacy**, so its manual is **F1058** (Legacy guide), NOT F1034 (Serial guide). Most facts are identical in both, BUT where they differ — **scoreboard outputs** (Legacy has an RS-232 "Legacy Scoreboard" output; the "Blue Square/Black Diamond SCBD" naming is Serial-only) and **lane-input wiring** (Legacy = direct deckplate/harness, NOT serial nodes/hubs) — **F1058 governs. See `04` "Legacy variant" deltas.**
+
 | Parameter | This rig | Provenance | Status |
 |---|---|---|---|
 | Lanes / ends used | **10 lanes, NEAR-END only** (far-end pads not wired) | back-panel photos | rig-confirmed 2026-06-19 |
