@@ -23,10 +23,11 @@ echo
 h=$(grep -nE "CH41-(6|8|12|16|20)\b" $SEM 2>/dev/null | grep -viE "CH41-N|only cover|would only|wrong for|do not spec|not for this|8-lane would")
 hard "non-CH41-10 harness asserted (rig = CH41-10)" "$h"
 
-# 2) GEN7 SWIMMING VERSION: rig = V2024.0.1. Flag *v2026* (with the 'v') implied as installed —
-#    require the leading 'v' so calendar dates like 2026-06-19 do NOT match.
-h=$(grep -niE "(running|installed|on this rig|our stack).{0,30}v2026" $SEM 2>/dev/null)
-hard "v2026 implied as installed (rig is V2024.0.1; v2026 is the UPGRADE target)" "$h"
+# 2) GEN7 SWIMMING VERSION: rig = v2026.0.3 (UPGRADED 2026-06-20 from V2024.0.1).
+#    Flag V2024.0.1 implied as the CURRENT/installed version; exclude historical/
+#    dated/"upgraded from" framings (those correctly record the pre-upgrade state).
+h=$(grep -niE "(runs|running|now on|current|installed|our stack is|this rig (is|runs|has)).{0,25}V?2024\.0\.1" $SEM 2>/dev/null | grep -viE "upgraded|was |from V?2024|2026-0[0-9]|history|prior|earlier")
+hard "V2024.0.1 implied as CURRENT (rig is now Gen7 Swimming v2026.0.3 since 2026-06-20)" "$h"
 
 # 3) DL+ VERSION: rig = v4.7.0. Review 4.6.x unless it's a floor/history/install-prereq line.
 h=$(grep -nE "4\.6\.[0-9]" $SEM 2>/dev/null | grep -viE "v?4\.6\.0\+|4\.6\.0 or (greater|newer)|floor|photo|updated|since|>=|≥|pre-v?4\.6|\.NET")
@@ -43,7 +44,7 @@ soft "RS-232 + scoreboard (rig uses 1/4\" LEGACY output; RS-485 ports empty) —
 # 6) INVENTORY: every canonical param keyword + sample values, for eyeball review.
 echo
 echo "--- Canonical-param inventory (eyeball for stray values) ---"
-for kw in "CH41" "GEN7-TMR" "2024\.0\.1" "4\.7\.0" "8\.0Gf" "COM3" "169\.254" "25 ?y|SCY"; do
+for kw in "CH41" "GEN7-TMR" "2026\.0\.3" "4\.7\.0" "8\.0Gf" "COM3" "169\.254" "25 ?y|SCY"; do
   echo "[$kw]"
   grep -nhE "$kw" $SEM 2>/dev/null | sed 's/^/    /' | head -3
 done

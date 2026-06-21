@@ -114,6 +114,6 @@ Meet Manager's **generic timing-console interface** also exposes a Serial-vs-UDP
 |---------|-------------------|
 | Names never appear on the board | RS-485 not connected, or RS-232 used by mistake (names need RS-485); or DL+/Gen7 below version floor |
 | First start list never shows | Forgot `CTRL+F10` to push it; wrong UDP port (must be 60287); wrong IP/broadcast |
-| Names show but Team Scores/full results do not | Gen7 not on v2026 / DL+ not on v4.7.0 (expected on the user's 2024.0.1 stack) |
+| Names show but Team Scores/full results do not | Needs Gen7 v2026 / DL+ v4.7.0. This rig now has both (Gen7 v2026.0.3 + DL+ v4.7.0 since 2026-06-20), so suspect the LED-board render path (F1034 p.85), not the version |
 | Timer not auto-discovered | Laptop and timer on different physical networks/subnets, or UDP 5353 blocked. Enter IP manually |
 | "Event Sequence not received from meet management software" | Meet-management cable not connected to both PC and the Gen7 **Meet Management port**, OR a race is currently active (wait until it finishes) [HIGH, Gen7 manual p.46] |

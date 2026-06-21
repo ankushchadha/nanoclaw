@@ -54,7 +54,7 @@ This rig uses the **USB A-B** MM-port path instead (see above).
 
 ## Start system
 
-- **Championship / Elite Starter** (CTS, documented in **F1064**) provides the gun/horn start reference to the console. Not plugged into the panel in the verified photos (verify on meet day). Pinout NOT extracted.
+- **Championship / Elite Starter** (CTS, documented in **F1064**) — a poolside unit with a **strobe + horn** (IMG_0484). It provides the gun/horn start reference. **Wiring (operator-confirmed 2026-06-20):** the starter's cable **joins the on-deck harness** at the poolside breakout block, alongside the touchpad and plungers (the breakout is labeled **START / BACKUP** — IMG_0482). So the start signal reaches the Gen7 through the harness path, not a separate dedicated run. Pinout NOT extracted.
 
 ## NOT VERIFIED (lead, not fact)
 

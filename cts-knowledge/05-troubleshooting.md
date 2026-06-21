@@ -33,7 +33,7 @@
 
 ## Team Scores / Complete Event Results not showing
 
-- Expected if Gen7 is **not v2026** / DL+ not **v4.7.0**. On the user's **2024.0.1** stack these live features are **not available** until the Gen7 software is upgraded. [HIGH] Names should still work.
+- Needs Gen7 **v2026** + DL+ **v4.7.0**. This rig was upgraded to **v2026.0.3 + v4.7.0** on 2026-06-20, so both are met; if Team Scores/Results still don't show, suspect the LED-board render path (F1034 p.85), not the version. [HIGH] Names work regardless.
 
 ## Scoreboard blank or garbled
 

@@ -12,7 +12,8 @@
 | Course | **25 yd / SCY** | Run-screen status bar | rig-confirmed 2026-06-17 |
 | Timer model | **GEN7-TMR-L** (Legacy) | nameplate IMG_0468 | rig-confirmed 2026-06-19 |
 | Timer S/N | **202214306** | nameplate + Available Timers | rig-confirmed |
-| Gen7 Swimming software | **V2024.0.1** | app title bar | rig-confirmed 2026-06-17 |
+| Gen7 Swimming software | **v2026.0.3** (UPGRADED from V2024.0.1 on 2026-06-20; timer firmware also updated, ~25 components) | installer UAC + release-notes screens IMG_0505/0506/0512 | rig-confirmed 2026-06-20 |
+| **Team Scores + Complete Event Results (live)** | **NOW SUPPORTED** post-upgrade: Gen7 v2026.0.3 + DL+ v4.7.0 both floors met. Verify they render (per F1034 p.85 they show on the LED board, not the Gen7 operator screen). | F1034 p.81 + upgrade IMG_0505/0512 | floor met 2026-06-20; render not yet separately verified |
 | DisplayLink Plus | **v4.7.0** (CC Express) | title bar/splash | rig-confirmed 2026-06-17 |
 | Meet Manager | **8.0Gf Pro Multi-User** (Valley Swim Association) | MM screen IMG_0451 | rig-confirmed 2026-06-17 |
 | Lane harness | **CH41-10** (10-lane primary; CH41-N = N lanes) | derived from lane count | **candidate** — confirm the actual harness label on the rig |
@@ -23,7 +24,7 @@
 | Network | **APIPA link-local 169.254.x.x — changes per session, DO NOT hard-code** | Gen7 status bar | rig-confirmed; **volatile** |
 | UDP Scoreboard Names setting | **"This Computer"** | Gen7 Settings screen | rig-confirmed 2026-06-17 |
 | Names transport | **USB stick** (SCB files → loaded into BOTH Gen7 + DL+); live names not yet wired | operator | rig-confirmed 2026-06-19 |
-| Start system | not plugged into the panel in verified photos | back-panel photos | rig-confirmed; verify on meet day |
+| Start system | CTS Championship/Elite starter (strobe + horn); its cable joins the **on-deck harness** (same poolside breakout as the touchpad + plungers — START / BACKUP labeled), not a separate panel jack | operator + IMG_0482/0484 | rig-confirmed 2026-06-20 |
 
 When any of these changes (re-cabling, a software update, a different harness), **update this table first**, then reconcile the semantic files against it (see the contradiction check in `08`).
 
@@ -49,7 +50,8 @@ Timer model = **`GEN7-TMR-L`** ("L" = **Legacy** on-deck timer), S/N 202214306, 
 - **CTS laptop (#1):** Gen7 **Ethernet** ("CTS" RJ45 port) → **CAT6** → CTS laptop. [CTS guide ② "Timer Interface"]
 - **Scoreboard laptop (#2, DL+):** Gen7 **1/4" LEGACY scoreboard output** (the jack by the green circle, labeled SCOREBOARD) → cable → DL+ laptop, read as **CTS Timer #1 = COM3, "Colorado" protocol** → DL+ drives the matrix LED board. [CTS guide ⑥ "Matrix / DL+"]. The Gen7's **RS-485 SCBD outputs (blue square / black diamond round connectors) are EMPTY** — that is the unused live-names path (`02`/`04`).
 - **Meet Manager laptop (#3):** Gen7 **MM port = USB Type-B** → **USB A-B cable** → MM laptop (virtual COM3). [CTS guide ⑤]. NOT a 9-pin serial cable.
-- **Near-end harness only:** the **FAR-END harness connectors are EMPTY** → this rig runs **near-end-only timing**, even though the Gen7 Swimming software setting reads "Far End = Pads" (that is capability config, not physical wiring). The **start system is also not plugged into the panel** in the verified photos.
+- **Near-end harness only:** the **FAR-END harness connectors are EMPTY** → this rig runs **near-end-only timing**, even though the Gen7 Swimming software setting reads "Far End = Pads" (that is capability config, not physical wiring).
+- **Start system via the harness (corrected 2026-06-20):** the starter's cable **joins the on-deck harness** at the poolside breakout block (START / BACKUP labeled, alongside the touchpad + plungers — IMG_0482), not a separate panel START jack. (Supersedes an earlier note that said the start system was "not plugged in" — it is, through the harness path.)
 - Lane harness for a 10-lane pool = **CH41-10** (not CH41-8). [shop.coloradotime.com]
 
 ## Resolved: which "DisplayLink"
@@ -136,12 +138,12 @@ This (plus the Course = 25y/SCY status) is where pool course, distances, and the
 
 ## VERSION VERDICT for this exact stack
 
-| Live feature | Floor | This rig (Gen7 v2024.0.1, DL+ ~4.7) | Status |
+| Live feature | Floor | This rig (Gen7 **v2026.0.3** since 2026-06-20, DL+ v4.7.0) | Status |
 |--------------|-------|--------------------------------------|--------|
 | Swimmer **names** on board | Gen7 v2023+ / DL+ v4.6.0+ | meets both | **WORKING (confirmed on screen)** |
-| **Team Scores** + **Complete Event Results** live auto-feed | Gen7 Swimming **v2026** / DL+ v4.7.0 | DL+ side OK (~4.7), **Gen7 side is v2024.0.1, below v2026** | **NOT available until Gen7 Swimming upgrades to the v2026 line** |
+| **Team Scores** + **Complete Event Results** live auto-feed | Gen7 Swimming **v2026** / DL+ v4.7.0 | **BOTH met after the 2026-06-20 upgrade** (Gen7 v2026.0.3 + DL+ v4.7.0) | **✅ SUPPORTED (upgraded 2026-06-20). Verify it renders on the LED BOARD, not the Gen7 screen [F1034 p.85].** |
 
-Bottom line: updating DisplayLink Plus to 4.7 was necessary but not sufficient for live Team Scores / Complete Event Results. **Confirmed [HIGH, F1034 p.81] (verified 2026-06-19):** the floor is **Gen7 Swimming v2026 AND DL+ v4.7.0**, so the **Gen7 Swimming software (V2024.0.1) is the limiting component** and would need the v2026 line (current build v2026.0.3) for those live features. **Important nuance [F1034 p.85]:** even on a compliant v2026 stack, Team Scores/Event Results **relay to the scoreboard but do NOT render in the Gen7 software** — "live results" means on the LED board, not the Gen7 operator screen. The CTS web product page lists only DL+ v4.7.0 (it omits the Gen7 floor — incomplete vs the manual). Names work today regardless.
+Bottom line (UPDATED 2026-06-20): the rig was upgraded **Gen7 Swimming V2024.0.1 → v2026.0.3** (plus a ~25-component firmware update), so it now meets **BOTH** floors (Gen7 v2026 + DL+ v4.7.0) for live Team Scores / Complete Event Results — they are now **supported** [F1034 p.81]. **Important nuance [F1034 p.85]:** even on a v2026 stack these data **relay to the scoreboard but do NOT render in the Gen7 operator screen** — "live results" means on the LED board, so verify they appear on the BOARD. Post-upgrade the operator tested the system + scoreboard and it worked. (The CTS web product page lists only DL+ v4.7.0 and omits the Gen7 floor — incomplete vs the manual.)
 
 ## Meet-day verified config (2026-06-17, meet "DEL@HOX2026")
 

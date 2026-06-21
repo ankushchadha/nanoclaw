@@ -15,7 +15,7 @@
 - [ ] Ethernet: timer and laptops on the **same physical network**. [HIGH]
 
 ### Software and versions
-- [ ] Confirm **Gen7 Swimming version** (user: 2024.0.1). Names work; Team Scores/Complete Event Results need **v2026**. [HIGH]
+- [ ] Confirm **Gen7 Swimming version** (now **v2026.0.3** since the 2026-06-20 upgrade). Names work; Team Scores/Complete Event Results need v2026 — now met. [HIGH]
 - [ ] Confirm whether scoreboard PC runs **DL+ (CTS app) v4.6.0+/v4.7.0** vs the generic DisplayLink USB driver. [open question]
 - [ ] Meet Manager: **Alpha Scoreboard** license option enabled if using UDP names. [HIGH]
 
@@ -61,7 +61,7 @@ Every heat, in order: **1) Turn Empty Lanes off → 2) Accept all backup → 3) 
 1. **Lane-input and start-system pinouts.** Exact touchpad/pushbutton pin assignments and start-system cable wiring; dual/multi-pad lane wiring. (Still not verified. Confirmed though: each near-end lane has 1 pad + 3 plungers A/B/C, see `09-operator-procedures.md`.)
 2. ~~**Pad-vs-button reconciliation logic.**~~ RESOLVED 2026-06-16: it is operator-driven, not a silent auto-tolerance. Accept-all-backup commits button times; Add/Minus-a-touch (14-second window) corrects pad over/under-triggers; Finish-Arm forces a lane to finish. See `09-operator-procedures.md`.
 3. ~~**Gen7 on-console menus.**~~ RESOLVED 2026-06-16: Pool length/course set in **Edit Session Settings**; meet + governing body in **Create or Select Meet**; events in **Session > Event Sequence** (Import pulls from MM). See `07` and `09`.
-4. ~~**DisplayLink identity.**~~ RESOLVED 2026-06-16: it is **DL+ the CTS app** (was v4.6.8, updated to ~4.7). Names work; live Team Scores/Complete Event Results still blocked by the Gen7 Swimming V2024.0.1 software (needs v2026). Remaining: read the exact post-update DL+ version string. See `07-observed-live-config.md`.
+4. ~~**DisplayLink identity.**~~ RESOLVED 2026-06-16: it is **DL+ the CTS app** (v4.7.0). Names work; live Team Scores/Complete Event Results were blocked by the Gen7 Swimming V2024.0.1 software, **now resolved — upgraded to v2026.0.3 on 2026-06-20**, so both floors are met. See `07-observed-live-config.md`.
 5. **Baud / data-format (null/d0/d4).** Whether the Gen7 serial path needs an explicit baud or data-format setting in Meet Manager (USB needs none). Not verified; do not invent a value.
 
 ## Source-strength caveats (for honest answering)
