@@ -7,7 +7,7 @@
 # See 08 "Separating SEMANTIC from INSTANCE memory".
 set -u
 cd "$(dirname "$0")"
-SEM="00-overview-and-corrections.md 01-serial-com-port-setup.md 02-udp-network-setup.md 03-meet-manager-interface.md 04-cabling-and-hardware.md 05-troubleshooting.md 06-pre-meet-checklist.md 10-meet-manager-operations.md 11-displaylink-plus-guide.md"
+SEM="00-overview-and-corrections.md 01-serial-com-port-setup.md 02-udp-network-setup.md 03-meet-manager-interface.md 04-cabling-and-hardware.md 05-troubleshooting.md 06-pre-meet-checklist.md 10-meet-manager-operations.md 11-displaylink-plus-guide.md 12-software-upgrade.md"
 flags=0
 
 # hard <label> <grep-output>  (called in the main shell so the counter persists)

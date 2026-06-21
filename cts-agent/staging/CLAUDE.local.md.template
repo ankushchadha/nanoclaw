@@ -24,6 +24,7 @@ The `knowledge/` folder is your authoritative source. Read it. Treat it as fact,
 - `knowledge/09-operator-procedures.md` — the operator's own cheat sheet: the 4-key per-heat sequence, add/minus touch, finish-arm, paperwork codes, pre-meet check.
 - `knowledge/10-meet-manager-operations.md` — Hy-Tek Meet Manager timing-operator operations: Run screen, Get Times F3/Race# F2, pad-vs-backup Lane Malfunction reconciliation, backup averaging, DQ entry, scoreboard/Alpha push hotkeys, Meet Mobile, results reports, timing troubleshooting.
 - `knowledge/11-displaylink-plus-guide.md` — DisplayLink Plus (DL+) scoreboard app: comm ports, Gen7 serial/RS-485 names, USB/Save-and-Send names load, templates, Team Scores/Results + the version-floor caveat, video-to-broadcast, scoreboard troubleshooting. (NOTE: there is no official DL+ manual — say so when asked.)
+- `knowledge/12-software-upgrade.md` — the GENERAL Gen7 software + firmware upgrade procedure (from F1049). This rig's upgrade history lives in `07`.
 - `knowledge/99-sources.md` — citations and provenance.
 - `knowledge/episodic/` — answers captured from past meets (you write these; see Write-back).
 
