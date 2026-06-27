@@ -618,6 +618,8 @@ export class ClaudeProvider implements AgentProvider {
         } else if (message.type === 'result') {
           const m = message as unknown as {
             result?: string;
+            is_error?: boolean;
+            errors?: string[];
             usage?: {
               input_tokens?: number;
               output_tokens?: number;
@@ -636,8 +638,12 @@ export class ClaudeProvider implements AgentProvider {
                 `${m.total_cost_usd != null ? ` cost=$${m.total_cost_usd.toFixed(4)}` : ''}`,
             );
           }
-          const text = m.result ?? null;
-          yield { type: 'result', text };
+          // `result` text exists only on subtype:"success"; error subtypes
+          // (e.g. a non-retryable 403 billing_error) carry their message in
+          // `errors[]` instead. Surface either so the poll-loop can deliver a
+          // billing/quota notice to the user rather than dropping the turn.
+          const text = m.result ?? (m.errors && m.errors.length > 0 ? m.errors.join('\n') : null);
+          yield { type: 'result', text, isError: m.is_error === true };
         } else if (message.type === 'system' && (message as { subtype?: string }).subtype === 'api_retry') {
           yield { type: 'error', message: 'API retry', retryable: true };
         } else if (message.type === 'system' && (message as { subtype?: string }).subtype === 'rate_limit_event') {
