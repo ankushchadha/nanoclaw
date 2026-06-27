@@ -57,6 +57,9 @@ describe('oauthGatewayEnvArgs', () => {
     expect(args).toContain(`CLAUDE_CODE_OAUTH_TOKEN=${OAUTH_PLACEHOLDER_TOKEN}`);
     expect(args).toContain('ANTHROPIC_API_KEY=');
     expect(OAUTH_PLACEHOLDER_TOKEN).toMatch(/^sk-ant-oat01-/);
+  });
+});
+
 describe('buildContainerArgs ordering invariant (structural)', () => {
   // The OneCLI gateway apply (SDK applyContainerConfig) appends credential-stub
   // mounts — e.g. the codex auth.json sentinel nested INSIDE our RW
