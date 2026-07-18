@@ -42,6 +42,14 @@
 - **Garbled:** protocol/format mismatch, wrong baud on a serial scoreboard link, or cable polarity on the serial run. The CTS scoreboard byte protocol is documented at Marco's Corner if you need to inspect the stream.
 - **Wrong COM (serial scoreboard):** every component reading the serial stream must name the **same Windows COM number** (the "both COM3" rule). Re-verify in Device Manager.
 
+## COM3 missing from DisplayLink Plus after a firmware update
+
+[OBSERVED, this rig, 2026-07-17] After the scoreboard firmware was updated, DL+ only listed **COM1 and COM2** in its port dropdown — COM3 (the Gen7 timer link) was missing, even though it had worked before. **Fix: restart the Windows PC.** After reboot, COM3 reappeared in DL+ and the full chain (Gen7 timer + CTS laptop + scoreboard) worked correctly in an end-to-end test meet.
+
+Likely cause (reasoned, not confirmed): a firmware/USB re-enumeration event can leave Windows' COM-port table stale until a fresh boot re-scans devices; DL+ only reads the port list it sees at launch. Not confirmed whether reopening DL+ alone (without a full reboot) would have been sufficient — a full restart is the tested fix.
+
+**Takeaway for pre-meet checklist:** after any firmware update (scoreboard, DL+, or Gen7), reboot the Windows PC before verifying COM ports in DL+, not just relaunching the app.
+
 ## Timer not auto-discovered on the network
 
 [HIGH, F1066]

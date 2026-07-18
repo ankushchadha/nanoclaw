@@ -16,6 +16,7 @@
 
 ### Software and versions
 - [ ] Confirm **Gen7 Swimming version** (now **v2026.0.3** since the 2026-06-20 upgrade). Names work; Team Scores/Complete Event Results need v2026 — now met. [HIGH]
+- [ ] **After any firmware update** (scoreboard, DL+, or Gen7): **reboot the Windows PC** before checking COM ports in DL+. [observed 2026-07-17 — DL+ showed only COM1/COM2 until the PC was restarted, after which COM3 reappeared and the full chain worked. See `05-troubleshooting.md`.]
 - [ ] Confirm whether scoreboard PC runs **DL+ (CTS app) v4.6.0+/v4.7.0** vs the generic DisplayLink USB driver. [open question]
 - [ ] Meet Manager: **Alpha Scoreboard** license option enabled if using UDP names. [HIGH]
 
