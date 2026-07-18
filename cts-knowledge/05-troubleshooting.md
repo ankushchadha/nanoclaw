@@ -81,6 +81,13 @@ Likely cause (reasoned, not confirmed): a firmware/USB re-enumeration event can 
 5. **Bring a wired fallback if at all possible** (an RS-485/scoreboard data cable, e.g. `R-015-674-xx`) even at a venue whose default setup is wireless — diagnosing RF interference mid-meet is impractical, and a cable you can run in a pinch is a much faster recovery than chasing a wireless dropout.
 6. **Practical ask for venue IT/facilities when troubleshooting or setting up a wireless CTS scoreboard:** run staff/guest APs 5GHz-only on non-DFS channels (or at least reduce 2.4GHz AP density/power near the pool deck), keep the CTS radio components close with clear line-of-sight, and don't assume a differently-numbered CTS channel avoids WiFi interference.
 
+### SSID strategy: dedicated 2.4GHz SSID for meet gear + true 5GHz-only for everyone else [reasoned, general networking — not CTS-specific]
+
+- **Multiple SSIDs bound to specific radios is standard and supported on any decent AP.** E.g. `MeetGear-2.4` broadcasting only on the 2.4GHz radio (for meet-management laptop, printer, wireless mic, sound system — check which of these are actually 2.4GHz-only first), plus a separate `GuestWiFi-5G` / `StaffWiFi-5G` bound only to 5GHz.
+- **Watch for "Smart Connect" / band-steering.** Many APs default to merging 2.4GHz + 5GHz under one SSID name and steering capable clients to 5GHz, but weaker/older devices can still fall back to 2.4GHz *under that same SSID*. If left on, a "5GHz" network isn't actually 5GHz-only. **Fix: explicitly disable Smart Connect / band-steering and create fully separate SSIDs per band**, with the 5GHz SSID bound only to the 5GHz radio. Done this way, an old 2.4GHz-only device simply can't see that SSID — there's no silent auto-downgrade, because the radio isn't broadcasting it there.
+- **Important limitation: a separate SSID isolates at the network/security layer, not the RF layer.** Radio spectrum doesn't know about SSID names — `MeetGear-2.4` traffic and a spectator's phone hotspot both physically transmit on the same 2.4GHz channels regardless of what either network is called. A dedicated SSID buys you network segmentation, a separate password, and the ability to set higher QoS priority for the meet-gear SSID on the AP — it does **not** shield that gear from the uncontrollable RF sources (other people's Bluetooth, hotspots, microwaves) covered above.
+- **What actually reduces interference to the meet-gear SSID:** fewer of the venue's *own* 2.4GHz APs/channels active near the deck, a clean non-overlapping channel (1, 6, or 11) picked for that SSID, and physical proximity between that AP and the meet gear it serves — not the SSID name itself.
+
 ## Timer not auto-discovered on the network
 
 [HIGH, F1066]
