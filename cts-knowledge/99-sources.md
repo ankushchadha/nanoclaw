@@ -70,6 +70,21 @@ Targeted pass to fill the coverage gap (the original pass had only the CTS↔MM 
 
 **Re-audit 2026-06-19 (raw-source fabrication check, files re-read at byte level — pdftotext, not WebFetch summaries):** the original deep-research claims hold, with two corrections. (1) The **Gen7 Swimming v2026 floor** for live Team Scores/Results is REAL — **F1034 p.81** states it verbatim ("Starting with Gen7 Swimming v2026 and DL+ v4.7.0..."); the CTS web pages omit the Gen7 floor (incomplete, not contradictory). An interim "conflict/UNVERIFIED" caveat in 00/07/11 was REVERTED. "**v2026.0.3**" is NOT a fabrication — it is the real current Gen7 Swimming build (CTS downloads, 2026-06-09); the earlier pipeline error was MISATTRIBUTING that build number as the requirement floor (the web requirement names DL+ v4.7.0 only). (2) The "**R-SJ-xx**" Ethernet-cable name (file 02) is UNSUPPORTED — absent from F1034 and F1066 despite the citation → downgraded to UNVERIFIED. Confirmed real: port **60287** (F1034 p.84), RS-485-for-names (F1034 p.81), USB-Connect null-modem (F1034 p.87-88), all F1066 ports/network claims, "Event Sequence not received" (ManualsLib p.46 / F1034 Rev202603 p.66), Get Times F3/Race# F2, COM range 1-64, the cable null-modem 2-1 vendor conflict.
 
+## 2026-07-17 ingestion pass — firmware catalog + wireless coexistence (file 05, 06)
+
+Targeted pass triggered by two live events: (1) a post-firmware-update COM3 dropout on this rig, fixed by a PC reboot (instance-observed, no external source needed); (2) a wireless scoreboard blanking issue Ankush observed at a different venue, prompting research into whether CTS's 2.4GHz wireless scoreboard link can be interfered with by venue WiFi.
+
+- **coloradotime.com/support/software-downloads** — full firmware/software catalog: Gen7 Swimming v2026.0.3, Gen7 Diving v1.5.9, WTTC Firmware v1.7.10, WA-2/WA-3 Firmware v2.1.6 (+ changelog back to v2.1.3), **MultiSport Display Firmware v1.8.0** (+ changelog back to v1.5.2), MultiSport Firmware Reprogramming tool v2.0.9, Elite/INF-PRO Starter Firmware v1.8.2, Dolphin v5.0.19.
+- **coloradotime.com/software-release-notes** — System 6 product line release notes (older/legacy; confirms no DL+/Gen7 changelog lives here).
+- **coloradotime.com/software/dlplus** — DL+ v4.7.0, Win10/11 requirement, license-file note on upgrade from v4.4.x or lower.
+- **Otter Boards Swimming & Track Scoreboard User Guide (F1004)**, Rev 202605 — confirms **2.4 GHz Integrated Wireless**, documents the **Scoreboard Power On Routine** (LED self-test → location numbers → firmware version number → address/channel/PAN rotation → Err1 low-battery warning), the CH-board DIP-switch channel/PAN scheme (0–11 / 0–15), and the Otter model range (MS-0149 through MS-0157).
+  https://coloradotime.com/hubfs/CTS%20Website%20%20Assets/Manuals/Aquatic%20Electronic%20Scoreboards/Otter%20Boards/Otter_Swimming+Track_Scbd_User_Guide_F1004.pdf
+- **coloradotime.com/support/dolphin-faq** — confirms the channel-matching workflow (scoreboard startup shows the channel to set on the transmitter) but does NOT address WiFi/RF coexistence.
+- **Daktronics KB DD2679433 ("Wireless Scoreboard has Skipping, Blanking or Lagging")** — a **different vendor**, used only by analogy (same 2.4GHz-band wireless-scoreboard architecture): confirms "low signal strength or interference from excessive use of wireless devices in the area" as a documented cause, explicitly naming WiFi hotspots, line-of-sight obstruction, and antenna positioning. Not a CTS-confirmed claim for CTS gear — flagged as reasoned-by-analogy in file 05.
+  https://www.daktronics.com/en-us/support/kb/DD2679433
+
+**Confidence note:** the WiFi-coexistence content in file 05 is the KB's first entry sourced partly from a non-CTS vendor by analogy rather than CTS's own documentation (CTS publishes no interference/coexistence guidance for its 2.4GHz wireless scoreboard products). Tagged accordingly; treat as reasoned engineering inference (shared unlicensed-band physics), not vendor-confirmed fact.
+
 ## Verification stats
 
 | Metric | Value |

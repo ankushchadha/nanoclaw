@@ -50,6 +50,19 @@ Likely cause (reasoned, not confirmed): a firmware/USB re-enumeration event can 
 
 **Takeaway for pre-meet checklist:** after any firmware update (scoreboard, DL+, or Gen7), reboot the Windows PC before verifying COM ports in DL+, not just relaunching the app.
 
+## Wireless scoreboard blanking/skipping at away venues (general — this rig is wired, not wireless)
+
+> Not applicable to this rig today: this rig's scoreboard link is **wired** (RS-485 / 1/4" legacy serial — see `04`/`07`), so it can't suffer this failure mode. Kept here as general knowledge for away meets, or if this rig ever adds a wireless CTS scoreboard link (Otter board integrated radio, or a WA-2/WA-3 adapter).
+
+[OBSERVED, different venue, 2026-07-17 — Ankush's own field report] At a different meet location, the scoreboard kept blanking. It was on a wireless link, and the venue had 3 separate WiFi networks (timer, staff, guest) — suspected as a contributing cause.
+
+- CTS's wireless scoreboard link (Otter board integrated radio, WA-2/WA-3 adapter) runs in the unlicensed **2.4 GHz** ISM band — the same band as nearly all WiFi and Bluetooth. [HIGH, CTS Otter Boards manual F1004: "2.4 GHz Integrated Wireless"]
+- CTS's own docs don't address WiFi coexistence. The closest evidence is a **different vendor** (Daktronics), which documents the identical failure mode for their own similarly-banded wireless scoreboards: skipping/blanking/lagging from "low signal strength or interference from excessive use of wireless devices in the area," explicitly naming **WiFi hotspots** as a cause, alongside line-of-sight obstructions and antenna positioning. [reasoned by analogy — not CTS-confirmed for CTS gear specifically]
+- CTS's channel/PAN scheme (channels 0–11, PAN 0–15, set via DIP switches or the MultiSport Firmware Reprogramming tool) is a **proprietary addressing system for matching the timer to the scoreboard** — it is NOT the same numbering as WiFi's channels 1–11. Picking a different CTS channel number does not reliably dodge a specific WiFi channel; the risk is aggregate 2.4GHz spectrum congestion, not a numeric collision.
+- **Mitigation: switching venue APs to 5GHz-only** removes that AP's contribution to 2.4GHz airtime entirely (5GHz and 2.4GHz are non-overlapping bands) — a standard toggle on virtually any enterprise/consumer AP. Caveats: doesn't help 2.4GHz-only client devices (rare now), doesn't stop attendees' personal hotspots/Bluetooth or a neighboring facility's AP, and 5GHz's shorter range/worse wall penetration may need more APs for equivalent coverage. Still likely the single biggest controllable lever, since the venue's own AP beaconing/traffic is usually the dominant 2.4GHz contributor.
+- A venue's "timer WiFi" network is probably for meet-management data sync (laptop↔laptop, results/streaming), not the scoreboard's actual over-the-air link — the CTS radio is a separate proprietary protocol, not IP/WiFi, so it doesn't ride that SSID at all.
+- **Practical ask for venue IT/facilities when troubleshooting or setting up a wireless CTS scoreboard:** run staff/guest APs 5GHz-only (or at least reduce 2.4GHz AP density/power near the pool deck), keep the CTS radio components close with clear line-of-sight, and don't assume a differently-numbered CTS channel avoids WiFi interference.
+
 ## Timer not auto-discovered on the network
 
 [HIGH, F1066]
